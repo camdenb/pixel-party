@@ -83,9 +83,6 @@ MainState.Gameplay.prototype = {
 		//gamevar.debug.body(playerSprite);
 
 		gamevar.debug.text("Difficulty: " + difficulty, 500, 100);
-		gamevar.debug.text("CurrentSongPos: " + currentSongPosition, 20, 32);
-		gamevar.debug.text("current event: " + currentEvent, 20, 50);
-		gamevar.debug.text("diff to add: " + difficultyToAdd, 20, 70);
 		// gamevar.debug.soundInfo(currentSong, 20, 32);
 		// bullets.forEachAlive(function(bullet){gamevar.debug.geom(bullet.line);});
 	 //    gamevar.debug.text("Current Combo: " + currentCombo, 300, 300);

@@ -30,9 +30,7 @@ var bOnlyRandomBullets = false;
 var bOnlyNormalBullets = false;
 
 var difficulty = 0;
-var difficultyAdditions = [[100, 250, 400], [100, 250, 400], [100, 250, 400], [150, 300, 400]];
 var maxDirectionRange = 0;
-var difficultyToAdd = 0;
 
 var coins;
 var coin;
@@ -151,7 +149,7 @@ MainState.Level.prototype = {
 		// timer_difficulty_walls.start();
 		
 		timer_shake = gamevar.time.create(false);
-		timer_shake.loop(300, function(){shakeScreen(difficulty / 20 + currentEvent * 2, 40, true)});
+		timer_shake.loop(300, function(){shakeScreen(difficulty / 30, 40, true)});
 		timer_shake.start();
 
 		spawnCoin();
@@ -201,11 +199,10 @@ function increaseDifficulty(){
 }
 
 function updateDifficulty(){
-	difficultyToAdd = (currentEvent < 1) ? 0 : difficultyAdditions[currentLevel][currentEvent - 1];
 	//console.log(difficultyAdditions[currentLevel][currentEvent]);
-	bulletSpawnInterval = CONST_bulletSpawnInterval - (difficulty / 6) - difficultyToAdd / 2;
-	bulletVelocity = CONST_bulletVelocity + (difficulty / 5) + difficultyToAdd;
-	bulletVelocity_random = CONST_bulletVelocity_random + (difficulty / 5) + difficultyToAdd;
+	bulletSpawnInterval = CONST_bulletSpawnInterval - (difficulty / 6);
+	bulletVelocity = CONST_bulletVelocity + (difficulty / 5);
+	bulletVelocity_random = CONST_bulletVelocity_random + (difficulty / 5);
 }
 
 function increaseDifficulty_Walls(){
@@ -403,55 +400,4 @@ function addEachBulletVelocity(amount){
 			break;
 	}
 	});
-}
-
-function playMusicEvent(){
-	if(currentEvent <= 2){
-		currentEvent++;
-	}
-	updateDifficulty();
-	setBGRandomColor();
-	addEachBulletVelocity(difficultyToAdd);
-	switch(currentEvent - 1){
-		case 0:
-			increaseDifficulty_Walls();
-			break;
-		case 1:
-			increaseDifficulty_Walls();
-			break;
-		case 2:
-			increaseDifficulty_Walls();
-			break;
-		default:
-			console.log('song doesn\'t exist');
-	}
-	musicEventShakeOffset = 2;
-}
-
-function setCurrentLevel(newLevel){
-	currentLevel = newLevel;
-	currentSong = songs[newLevel * 4];
-	musicEventTimes[0] = songs[newLevel * 4 + 1];
-	musicEventTimes[1] = songs[newLevel * 4 + 2];
-	musicEventTimes[2] = songs[newLevel * 4 + 3];
-	switch(newLevel){
-		case 0:
-			bOnlyNormalBullets = true;
-			bOnlyRandomBullets = false;
-			break;
-		case 1:
-			bOnlyNormalBullets = true;
-			bOnlyRandomBullets = false;
-			break;
-		case 2:
-			bOnlyNormalBullets = false;
-			bOnlyRandomBullets = false;
-			break;
-		case 3:
-			bOnlyNormalBullets = false;
-			bOnlyRandomBullets = true;
-			break;
-		default:
-			console.log('song doesn\'t exist');
-	}
 }

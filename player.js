@@ -112,7 +112,6 @@ MainState.Player.prototype = {
 		pausedMask.scale.setTo(60, 60);
 		pausedMask.alpha = 0;
 
-
 		playerSprite.body.collideWorldBounds = true;
 		
 		timer_bombRecharge = gamevar.time.create(false);
@@ -205,11 +204,12 @@ function playerHitByBullet(_player, _bullet){
 		_bullet.kill();
 		//addScore(-50);
 		addHealth(-1);
+		addToLifeMeter(-100);
 	}
 }
 
 function playerCollectedCoin(_player, _coin){
-	increaseDifficulty();
+	//increaseDifficulty();
 	flashCoinCollect();
 	_coin.kill();
 	// gamevar.add.tween(_coin).to({y: '-100', alpha: 0}, 250, Phaser.Easing.Linear.None, true).onComplete.add(function(){/*_coin.kill;*/});
@@ -218,6 +218,7 @@ function playerCollectedCoin(_player, _coin){
 	//console.log(_coin);
 	addCoinValue(_coin.timeValue);
 	addScore(75);
+	addToLifeMeter(30);
 }
 
 function addCoinValue(amount){

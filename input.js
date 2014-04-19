@@ -11,14 +11,15 @@ var text_score;
 var text_coins;
 var text_health;
 var text_bombs;
+var textArray;
 
 
 MainState.Input.prototype = {
 
 	preload: function() {
-		gamevar.load.audio('glitchitup', 'assets/sound/music/glitchitup.ogg');
-		gamevar.load.audio('seaoflava', 'assets/sound/music/seaoflava.ogg');
-		gamevar.load.audio('8bitfight', 'assets/sound/music/8bitfight.ogg');
+		// gamevar.load.audio('glitchitup', 'assets/sound/music/glitchitup.ogg');
+		// gamevar.load.audio('seaoflava', 'assets/sound/music/seaoflava.ogg');
+		// gamevar.load.audio('8bitfight', 'assets/sound/music/8bitfight.ogg');
 		gamevar.load.audio('justkillit', 'assets/sound/music/justkillit.ogg');
 	},
 
@@ -36,6 +37,11 @@ MainState.Input.prototype = {
 		text_coins = gamevar.add.bitmapText(200, 275, 'carrier', 'Coins: ' + coins_value, 40);
 		text_health = gamevar.add.bitmapText(200, 350, 'carrier', 'Health: ' + health_value, 40);
 		text_bombs = gamevar.add.bitmapText(200, 425, 'carrier', 'Bomb? ' + bomb_value, 40);
+
+		textArray = [text_score, text_coins, text_health, text_bombs];
+		textArray.forEach(function(text){
+			text.alpha = 0.3;
+		});
 
 	},
 

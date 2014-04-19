@@ -7,6 +7,7 @@
     <script type="text/javascript" src="js/store.min.js"></script>
     <script type="text/javascript" src="game.js"></script>
     <script type="text/javascript" src="input.js"></script>
+    <script type="text/javascript" src="overlay.js"></script>
     <script type="text/javascript" src="menus.js"></script>
     <script type="text/javascript" src="level.js"></script>
     <script type="text/javascript" src="player.js"></script>
@@ -36,6 +37,7 @@ var gamevar = new Phaser.Game(800, 600, Phaser.CANVAS);
 var player = new MainState.Player(gamevar);
 var level = new MainState.Level(gamevar);
 var inputHandler = new MainState.Input(gamevar);
+var overlay = new MainState.Overlay(gamevar);
 
 var running = true;
 

@@ -12,8 +12,8 @@ var timer_difficulty_walls;
 
 var currentLevel = 0;
 
-var CONST_bulletSpawnInterval = 400;
-var CONST_bulletVelocity = 200;
+var CONST_bulletSpawnInterval = 275;
+var CONST_bulletVelocity = 210;
 var CONST_bulletVelocity_random = 200;
 
 var lastBulletSpawnTime = 0;
@@ -35,6 +35,8 @@ var maxDirectionRange = 0;
 var coins;
 var coin;
 var shine;
+
+var lifeMeter;
 
 var bDeathPause = false;
 
@@ -141,7 +143,7 @@ MainState.Level.prototype = {
 		//timer_scorePerSec.start();
 
 		timer_difficulty = gamevar.time.create(false);
-		timer_difficulty.loop(5000, function(){increaseDifficulty();});
+		timer_difficulty.loop(1000, function(){increaseDifficulty();});
 		timer_difficulty.start();
 
 		timer_difficulty_walls = gamevar.time.create(false);
@@ -149,12 +151,14 @@ MainState.Level.prototype = {
 		// timer_difficulty_walls.start();
 		
 		timer_shake = gamevar.time.create(false);
-		timer_shake.loop(300, function(){shakeScreen(difficulty / 30, 40, true)});
+		timer_shake.loop(300, function(){
+			shakeScreen((gamevar.height - lifeMeter.y) / 100, 40, true)
+		});
 		timer_shake.start();
+		
 
 		spawnCoin();
 		updateDifficulty();
-		musicStartTime = gamevar.time.now;
 
 	},
 
@@ -180,6 +184,13 @@ MainState.Level.prototype = {
 
 };
 
+function addToLifeMeter(amount){
+	lifeMeter.y += amount;
+	if(lifeMeter.y > gamevar.height + 100){
+		lifeMeter.y = gamevar.height + 100;
+	}
+}
+
 function setBGRandomColor(){
 	gamevar.stage.backgroundColor = Phaser.Color.RGBtoWebstring(Phaser.Color.getRandomColor(150, 235));
 }
@@ -199,8 +210,13 @@ function increaseDifficulty(){
 }
 
 function updateDifficulty(){
+	if(Math.floor(difficulty / 50) < 5){
+		maxDirectionRange = Math.floor(difficulty / 50);
+	} else {
+		maxDirectionRange = 4;
+	}
 	//console.log(difficultyAdditions[currentLevel][currentEvent]);
-	bulletSpawnInterval = CONST_bulletSpawnInterval - (difficulty / 6);
+	bulletSpawnInterval = CONST_bulletSpawnInterval - (difficulty / 2);
 	bulletVelocity = CONST_bulletVelocity + (difficulty / 5);
 	bulletVelocity_random = CONST_bulletVelocity_random + (difficulty / 5);
 }
@@ -226,7 +242,7 @@ function spawnBullet(){
 	} else if (bOnlyNormalBullets){
 		bullet.random = false;
 		bullet.frame = 0;
-	} else if(difficulty > 40 && gamevar.rnd.integerInRange(0, 5) == 0){
+	} else if(difficulty > 120 && gamevar.rnd.integerInRange(0, 5) == 0){
 		randomPoint = new Phaser.Point(gamevar.rnd.integerInRange(0, gamevar.width), gamevar.rnd.integerInRange(0, gamevar.height));
 		bullet.random = true;
 		bullet.frame = 1;
@@ -240,8 +256,8 @@ function spawnBullet(){
 	var boundsMin;
 	var boundsMax;
 	var spawnPoint;
-	var spawnPointOffset = 100;
-	var stageOffset = 100;
+	var spawnPointOffset = 0;
+	var stageOffset = 10;
 	var bVertical = false;
 
 	var direction = gamevar.rnd.integerInRange(0, maxDirectionRange); //0 is north, 1 is east, etc clockwise...
@@ -299,7 +315,7 @@ function spawnBullet(){
 }
 
 function spawnCoin(){
-	var coinSpawnOffset = 75;
+	var coinSpawnOffset = 100;
 	var _x = gamevar.rnd.integerInRange(coinSpawnOffset, gamevar.width - coinSpawnOffset);
 	var _y = gamevar.rnd.integerInRange(coinSpawnOffset, gamevar.height - coinSpawnOffset);
 

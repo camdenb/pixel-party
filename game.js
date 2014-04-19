@@ -41,6 +41,7 @@ MainState.Preloader.prototype = {
 		level.preload();
 	    player.preload();
 	    inputHandler.preload();
+	    overlay.preload();
 	},
 
 	create: function() {
@@ -69,6 +70,7 @@ MainState.Gameplay.prototype = {
 		inputHandler.create();
 		level.create();
 	    player.create();
+	    overlay.create();
 
 	},
 
@@ -76,6 +78,7 @@ MainState.Gameplay.prototype = {
 		inputHandler.update();
 		level.update();
 	    player.update();
+	    overlay.update();
 	},
 
 	render: function() {
@@ -83,6 +86,7 @@ MainState.Gameplay.prototype = {
 		//gamevar.debug.body(playerSprite);
 
 		gamevar.debug.text("Difficulty: " + difficulty, 500, 100);
+		gamevar.debug.text("maxasdad: " + Math.floor(difficulty / 50), 200, 100);
 		// gamevar.debug.soundInfo(currentSong, 20, 32);
 		// bullets.forEachAlive(function(bullet){gamevar.debug.geom(bullet.line);});
 	 //    gamevar.debug.text("Current Combo: " + currentCombo, 300, 300);

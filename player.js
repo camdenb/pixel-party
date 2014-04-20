@@ -9,7 +9,7 @@ var PLAYER_MAXHEALTH = 5000;
 var bombSprite;
 var bBombExploding = false;
 var timer_bombRecharge;
-var bombRechargeTime = 10000;
+var bombRechargeTime = 3000;
 
 var score_value = 0;
 var coins_value = 0;
@@ -115,8 +115,8 @@ MainState.Player.prototype = {
 		playerSprite.body.collideWorldBounds = true;
 		
 		timer_bombRecharge = gamevar.time.create(false);
-		timer_bombRecharge.add(bombRechargeTime, function(){setHasBomb(true); text_bombs.setText('Bomb? ' + bomb_value);});
-		timer_bombRecharge.start();
+		timer_bombRecharge.add(bombRechargeTime, function(){setHasBomb(true); text_bombs.setText(bomb_value);});
+		//timer_bombRecharge.start();
 		hasBomb = true;
 
 	},
@@ -133,6 +133,12 @@ MainState.Player.prototype = {
 			} else if(!emitter_trail.on){
 				emitter_trail.start(false, 700, 0, 0);
 			}
+		}
+
+		if(!hasBomb){
+			text_bombs.alpha = CONST_textDefaultAlpha;
+		} else {
+			text_bombs.alpha = CONST_textHighlightAlpha;
 		}
 
 	}
@@ -188,12 +194,19 @@ function launchBomb(){
 		//bombSprite.reset(playerSprite.x, playerSprite.y);
 		bBombExploding = true;
 		setHasBomb(false);
-		text_bombs.setText('Bomb? ' + bomb_value);
+		text_bombs.setText(bomb_value);
 		//bombSprite.alpha = 0;
 		// gamevar.add.tween(bombSprite).to( { alpha: 1 }, 150, Phaser.Easing.Linear.None, true, 0).to( { alpha: 0 }, 250, Phaser.Easing.Linear.None, true, 0).onComplete.add(function(){bombSprite.kill; bBombExploding = false; console.log('done')});
 
-		timer_bombRecharge.add(bombRechargeTime, function(){setHasBomb(true); text_bombs.setText('Bomb? ' + bomb_value);});
+		timer_bombRecharge.add(bombRechargeTime, function(){
+			setHasBomb(true); 
+			text_bombs.setText(bomb_value);
+			flashText(text_bombs, true);
+		});
 		timer_bombRecharge.start();
+	} else {
+		shakeText(text_bombs, 4, 100, true);
+		text_bombs.alpha = CONST_textDefaultAlpha;
 	}
 }
 
@@ -229,7 +242,8 @@ function addCoinValue(amount){
 
 function addScore(amount){
 	score_value += amount;
-	text_score.setText('Score: ' + score_value);
+	text_score.setText(score_value);
+	text_score.x = text_score_center - getTextWidth(text_TEST) * Math.floor(score_value.toString().length / 2);
 }
 
 function addHealth(amount){
@@ -248,7 +262,7 @@ function resetScores(){
 	//text_coins.setText('Coins: ' + coins_value);
 
 	score_value = 0;
-	text_score.setText('Score: ' + score_value);
+	text_score.setText(score_value);
 
 	health_value = PLAYER_MAXHEALTH;
 	text_health.setText('Health: ' + health_value);
@@ -274,5 +288,6 @@ function setHasBomb(hasBomb_param){
 	} else {
 		hasBomb = false;
 		bomb_value = 'no.';
+		text_bombs.alpha = CONST_textDefaultAlpha;
 	}
 }

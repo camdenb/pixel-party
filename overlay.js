@@ -1,18 +1,7 @@
 MainState.Overlay = function(game) {
 };
 
-var resetKey;
-var pauseKey;
-var bombKey;
-var skipKey;
-var cursors;
-
-var text_score;
-var text_coins;
-var text_health;
-var text_bombs;
-var textArray;
-
+var lifeMeterFillRate = 30;
 
 MainState.Overlay.prototype = {
 
@@ -22,18 +11,28 @@ MainState.Overlay.prototype = {
 
 	create: function() {
 
-		lifeMeter = gamevar.add.sprite(-100, -100, 'blackmask');
+		lifeMeter = gamevar.add.sprite(-100, -100, 'bullet', 1);
 		lifeMeter.scale.setTo(60, 50);
 		lifeMeter.x = -100;
 		lifeMeter.y = gamevar.height + 10;
-		lifeMeter.alpha = .3;
+		lifeMeter.alpha = .2;
 		gamevar.physics.enable(lifeMeter, Phaser.Physics.ARCADE, true);
-		lifeMeter.body.velocity.y = -20;
+		lifeMeter.body.velocity.y = -lifeMeterFillRate;
 
 	},
 
 	update: function() {
-
+		if(lifeMeter.y < 0){
+			if(lifeMeter.y < -100){
+				lifeMeter.y = -100;
+			}
+			lifeEmpty = true;
+		} else if(lifeMeter.y > 0){
+			if(lifeMeter.y < -100){
+				lifeMeter.y = -100;
+			}
+			lifeEmpty = true;
+		}
 
 	}
 

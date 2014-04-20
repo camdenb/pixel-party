@@ -37,6 +37,7 @@ var coin;
 var shine;
 
 var lifeMeter;
+var lifeEmpty = false;
 
 var bDeathPause = false;
 
@@ -67,7 +68,7 @@ MainState.Level.prototype = {
 		bullets = gamevar.add.group();
 		bullets.enableBody = true;
     	bullets.physicsBodyType = Phaser.Physics.ARCADE;
-    	bullets.createMultiple(60, 'bullet', 0, false);
+    	bullets.createMultiple(100, 'bullet', 0, false);
     	bullets.setAll('anchor.x', 0.5);
     	bullets.setAll('anchor.y', 0.5);
     	bullets.setAll('body.allowGravity', false);
@@ -139,8 +140,8 @@ MainState.Level.prototype = {
 		// timer_coinSpawn.start();
 
 		timer_scorePerSec = gamevar.time.create(false);
-		timerEvent_scorePerSec = timer_scorePerSec.loop(1000, function(){addScore(10);});
-		//timer_scorePerSec.start();
+		timerEvent_scorePerSec = timer_scorePerSec.loop(300, function(){addScore(1);});
+		timer_scorePerSec.start();
 
 		timer_difficulty = gamevar.time.create(false);
 		timer_difficulty.loop(1000, function(){increaseDifficulty();});
@@ -186,13 +187,13 @@ MainState.Level.prototype = {
 
 function addToLifeMeter(amount){
 	lifeMeter.y += amount;
-	if(lifeMeter.y > gamevar.height + 100){
-		lifeMeter.y = gamevar.height + 100;
+	if(lifeMeter.y > gamevar.height + lifeMeterFillRate){
+		lifeMeter.y = gamevar.height + lifeMeterFillRate;
 	}
 }
 
 function setBGRandomColor(){
-	gamevar.stage.backgroundColor = Phaser.Color.RGBtoWebstring(Phaser.Color.getRandomColor(150, 235));
+	gamevar.stage.backgroundColor = Phaser.Color.RGBtoWebstring(Phaser.Color.getRandomColor(150, 215));
 }
 
 function toggleSound(){

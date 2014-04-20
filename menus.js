@@ -16,6 +16,8 @@ var advanceScreenKey;
 var nextScreen = 'gameplay';
 var parentScreen = 'menu_main';
 
+var sound_switch;
+
 MainState.Menus.Paused.prototype = {
 
 	create: function() {
@@ -30,10 +32,16 @@ MainState.Menus.Paused.prototype = {
 
 
 MainState.Menus.Main.prototype = {
+	//PIXEL PARTY
+
+	preload: function(){
+		this.load.audio('switch', 'assets/sound/ui/switch30.ogg');
+	},
 
 	create: function() {
 		this.stage.backgroundColor = '#aaaaaa';
 		console.log('main menu started');
+		sound_switch = this.add.audio('switch');
 		//this.add.button(this.world.centerX - 64, 300, 'button_play', buttonPressed_play, this);
 		addMenus(['btn_play', 'play', 60, 'btn_options', 'options', 40]);
 
@@ -84,21 +92,32 @@ function addMenus(buttonArr) {
 	var buttons = [];
 
 	for(var i = 0; i < buttonArr.length; i += 3){
-		// var newBtn = gamevar.add.button(gamevar.world.centerX - 64, currentHeight, buttonArr[i], null, null, 1, 0);
-		// newBtn.name = buttonArr[i] + "";
-		// buttons.push(newBtn);
+		// var newText = gamevar.add.button(gamevar.world.centerX - 64, currentHeight, buttonArr[i], null, null, 1, 0);
+		// newText.name = buttonArr[i] + "";
+		// buttons.push(newText);
 		// currentHeight += menuItemSpace;
 		var btnValue = buttonArr[i + 1] + "";
 		var btnSize = buttonArr[i + 2];
-		var newBtn = gamevar.add.bitmapText(gamevar.world.centerX - (getTextWidthFromParam(btnSize, btnValue.length) / 2), currentHeight, 'carrier', btnValue, btnSize);
-		newBtnX = gamevar.world.centerX - (getTextWidthFromParam(btnSize, btnValue.length) / 2);
+		var newText = gamevar.add.bitmapText(gamevar.world.centerX - (getTextWidthFromParam(btnSize, btnValue.length) / 2), currentHeight, 'carrier', btnValue, btnSize);
+		newTextX = gamevar.world.centerX - (getTextWidthFromParam(btnSize, btnValue.length) / 2);
 
-		var img = gamevar.add.sprite(newBtnX - buttonOffset, currentHeight - buttonOffset, 'rect');
-		img.crop({x : 0, y : 0 , width : getTextWidth(newBtn) + 2 * buttonOffset, height : newBtn.fontSize + 2 * buttonOffset});
+		var img = gamevar.add.sprite(newTextX - buttonOffset, currentHeight - buttonOffset, 'rect');
+		img.crop({x : 0, y : 0 , width : getTextWidth(newText) + 2 * buttonOffset, height : newText.fontSize + 2 * buttonOffset});
 		img.alpha = 0;
 		img.inputEnabled = true;
-		img.name = buttonArr[i] + "";;
+		img.name = buttonArr[i] + "";
+		img.linkedText = newText;
+		img.linkedText.alpha = .5;
 		img.events.onInputDown.add(buttonPressed, this);
+		img.events.onInputOver.add(function(_img){
+			sound_switch.play();
+			shakeText(_img.linkedText, 3, 100, true);
+			_img.linkedText.alpha = 1;
+			textParticleBurst(_img.linkedText);
+		});
+		img.events.onInputOut.add(function(_img){
+			_img.linkedText.alpha = 0.5;
+		});
 
 		currentHeight += menuItemSpace + btnSize / buttonSizeAdjustment;
 	}
@@ -133,18 +152,29 @@ function buttonPressed(btn){
 
 function addBackButton(){
 	btnValue = 'back';
-	var backBtn = gamevar.add.bitmapText(gamevar.world.centerX - (getTextWidthFromParam(30, btnValue.length) / 2), backButtonY, 'carrier', btnValue, 30);	
+	var backText = gamevar.add.bitmapText(gamevar.world.centerX - (getTextWidthFromParam(30, btnValue.length) / 2), backButtonY, 'carrier', btnValue, 30);	
 
-	var img = gamevar.add.sprite(gamevar.world.centerX - (getTextWidthFromParam(30, backBtn.text.length) / 2) - buttonOffset, backButtonY - buttonOffset, 'rect');
-	img.crop({x : 0, y : 0 , width : getTextWidth(backBtn) + 2 * buttonOffset, height : backBtn.fontSize + 2 * buttonOffset});
+	var img = gamevar.add.sprite(gamevar.world.centerX - (getTextWidthFromParam(30, backText.text.length) / 2) - buttonOffset, backButtonY - buttonOffset, 'rect');
+	img.crop({x : 0, y : 0 , width : getTextWidth(backText) + 2 * buttonOffset, height : backText.fontSize + 2 * buttonOffset});
 	img.alpha = 0;
 	img.inputEnabled = true;
 	img.name = 'btn_back';
+	img.linkedText = backText;
+	img.linkedText.alpha = 0.5;
 	img.events.onInputDown.add(buttonPressed, this);
+	img.events.onInputOver.add(function(_img){
+			sound_switch.play();
+			shakeText(_img.linkedText, 3, 100, true);
+			_img.linkedText.alpha = 1;
+			textParticleBurst(_img.linkedText);
+	});
+	img.events.onInputOut.add(function(_img){
+			_img.linkedText.alpha = 0.5;
+	});
 
-	//backBtn.inputEnabled = true;
-	//backBtn.events.onInputDown.add(buttonPressed, this);
-	// backBtn.name = 'btn_back';
+	//backText.inputEnabled = true;
+	//backText.events.onInputDown.add(buttonPressed, this);
+	// backText.name = 'btn_back';
 }
 
 function advanceScreenCheck(){
@@ -160,3 +190,4 @@ function getTextWidthFromParam(fontSize, length){
 	//ONLY WORKS FOR CARRIER COMMAND FONT
 	return (fontSize * length) * 1.15;
 }
+

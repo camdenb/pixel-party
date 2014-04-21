@@ -5,6 +5,7 @@
 	<title>BULLET HELL THING</title>
 	<script type="text/javascript" src="js/phaser.js"></script>
     <script type="text/javascript" src="js/store.min.js"></script>
+    <script type="text/javascript" src="js/tinycolor-min.js"></script>
     <script type="text/javascript" src="game.js"></script>
     <script type="text/javascript" src="input.js"></script>
     <script type="text/javascript" src="overlay.js"></script>
@@ -46,7 +47,7 @@ var running = true;
 gamevar.state.add('boot', MainState.Boot);
 gamevar.state.add('preload', MainState.Preloader);
 gamevar.state.add('menu_main', MainState.Menus.Main);
-gamevar.state.add('menu_modes', MainState.Menus.Modes);
+gamevar.state.add('menu_credits', MainState.Menus.Credits);
 gamevar.state.add('menu_options', MainState.Menus.Options);
 gamevar.state.add('menu_paused', MainState.Menus.Paused);
 gamevar.state.add('gameplay', MainState.Gameplay);

@@ -29,17 +29,23 @@ var bullet;
 var bOnlyRandomBullets = false;
 var bOnlyNormalBullets = false;
 
-var difficulty = 0;
+var difficulty = 40;
 var maxDirectionRange = 0;
 
 var coins;
 var coin;
 var shine;
+var shineTween;
 
 var lifeMeter;
 var lifeEmpty = false;
 
+var bPaused = false;
 var bDeathPause = false;
+
+var bgMusic;
+
+
 
 var graphicsLevel = 2;
 
@@ -49,14 +55,22 @@ MainState.Level.prototype = {
 		gamevar.load.spritesheet('bullet', 'assets/sprites/shapes/16_ss.png', 16, 16);
 		gamevar.load.image('coin', 'assets/sprites/shapes/16_green1.png');
 		gamevar.load.image('shine', 'assets/sprites/shine.png');
+		gamevar.load.audio('stutter', 'assets/sound/music/stutter.mp3');
 
 	},
 
 	create: function() {
 		// gamevar.stage.backgroundColor = '#EE99FF';
 		// console.log(Phaser.Color.RGBtoHexstring(Phaser.Color.getRandomColor(0, 255)));
-		gamevar.world.setBounds(-50, -50, 900, 700);
-		setBGRandomColor();
+
+		// gamevar.world.setBounds(-30, -30, 830, 630);
+		music_menu.stop();
+		menuMusicPlaying = false;
+		bgMusic = gamevar.add.audio('stutter', 1, true);
+		bgMusic.volume = volumeLevel_music;
+		bgMusic.play();
+		gameMusicPlaying = true;
+		setBGRandomColor(175);
 		//gamevar.physics.arcade.gravity.y = 1700;
 
 		shine = gamevar.add.sprite(-200, 0, 'shine');
@@ -76,6 +90,7 @@ MainState.Level.prototype = {
 		bullets.setAll('checkWorldBounds', true);
 		bullets.setProperty('random', false);
 		bullets.setProperty('direction', 0);
+		bullets.setProperty('vertical', true);
 		//bullets.setProperty('trail', Phaser.Emitter);
 		if(graphicsLevel > 2){
 			bullets.forEach(function(bullet){
@@ -115,12 +130,12 @@ MainState.Level.prototype = {
     	coins.setProperty('timeValue', 10);
     	if(graphicsLevel > 1){
 			coins.forEach(function(coin){
-				coin.trail = gamevar.add.emitter(-200, -200, 100);
+				coin.trail = gamevar.add.emitter(100, 100, 100);
 				coin.trail.makeParticles('trail', 0, 50);
 				// emitter_trail.setAll('scale.x', 2);
 				// emitter_trail.setAll('scale.y', 2);
-				coin.trail.setAlpha(1, 0, 1500);
-				coin.trail.setScale(3, 1, 3, 1, 1500);
+				coin.trail.setAlpha(.8, 0, 2000);
+				coin.trail.setScale(4, 1, 4, 1, 2000);
 				//emitter_trail.setAll('alpha', .6);
 				coin.trail.gravity = 0;
 				coin.trail.width = 10;
@@ -131,7 +146,7 @@ MainState.Level.prototype = {
 				// emitter_trail.maxParticleScale = 2;
 				coin.trail.minParticleSpeed.setTo(-90, -90);
 				coin.trail.maxParticleSpeed.setTo(90, 90);
-				coin.trail.start(false, 700, 200, 0);
+				coin.trail.start(false, 2000, 100, 0);
 			});
 		}
 
@@ -161,25 +176,36 @@ MainState.Level.prototype = {
 		spawnCoin();
 		updateDifficulty();
 
+
 	},
 
 	update: function() {
-		if(gamevar.time.now - lastBulletSpawnTime > bulletSpawnInterval){
+
+		if((!bPaused || lifeEmpty) && gamevar.time.now - lastBulletSpawnTime > bulletSpawnInterval){
 			spawnBullet();
 			lastBulletSpawnTime = gamevar.time.now;
 		}
 
-		if(graphicsLevel > 2){
-			bullets.forEach(function(bullet){
-				bullet.trail.x = bullet.x;
-				bullet.trail.y = bullet.y;
-			});
-		}
-		if(graphicsLevel > 1){
-			coins.forEach(function(coin){
-				coin.trail.x = coin.x;
-				coin.trail.y = coin.y;
-			});
+		if(!bPaused){
+			
+
+			if(graphicsLevel > 2){
+				bullets.forEach(function(bullet){
+					bullet.trail.x = bullet.x;
+					bullet.trail.y = bullet.y;
+				});
+			}
+			if(graphicsLevel > 1){
+				coins.forEach(function(coin){
+					if(coin.exists){
+						coin.trail.x = coin.x;
+						coin.trail.y = coin.y;
+					} else {	
+						coin.trail.on = false;
+					}
+					
+				});
+			}
 		}
 	}
 
@@ -192,18 +218,14 @@ function addToLifeMeter(amount){
 	}
 }
 
-function setBGRandomColor(){
-	gamevar.stage.backgroundColor = Phaser.Color.RGBtoWebstring(Phaser.Color.getRandomColor(150, 215));
+function setBGRandomColor(brightness){
+	var newColorString = Phaser.Color.RGBtoWebstring(Phaser.Color.getRandomColor(brightness - 50, brightness + 50));
+	var newTinyColor = tinycolor(newColorString);
+	tinycolor.saturate(newTinyColor, 100);
+	tinycolor.lighten(newTinyColor, 100);
+	gamevar.stage.backgroundColor = newTinyColor.toHexString()
 }
 
-function toggleSound(){
-	if(gamevar.sound.mute){
-		gamevar.sound.mute = false;
-		gamevar.sound.volume = .3;
-	} else {
-		gamevar.sound.mute = true;
-	}
-}
 
 function increaseDifficulty(){
 	difficulty++;
@@ -212,22 +234,20 @@ function increaseDifficulty(){
 
 function updateDifficulty(){
 	if(Math.floor(difficulty / 50) < 5){
+		var oldMaxDir = maxDirectionRange;
 		maxDirectionRange = Math.floor(difficulty / 50);
+		if(maxDirectionRange - oldMaxDir != 0){
+			setBGRandomColor(150);
+		}
+
 	} else {
 		maxDirectionRange = 4;
 	}
 	//console.log(difficultyAdditions[currentLevel][currentEvent]);
-	bulletSpawnInterval = CONST_bulletSpawnInterval - (difficulty / 2);
+	bulletSpawnInterval = CONST_bulletSpawnInterval - (difficulty / 1.5
+		);
 	bulletVelocity = CONST_bulletVelocity + (difficulty / 5);
 	bulletVelocity_random = CONST_bulletVelocity_random + (difficulty / 5);
-}
-
-function increaseDifficulty_Walls(){
-	if(maxDirectionRange < 4){
-		maxDirectionRange++;
-	} else {
-		timer_difficulty_walls.on = false;
-	}
 }
 
 function spawnBullet(){
@@ -239,14 +259,14 @@ function spawnBullet(){
 	if(bOnlyRandomBullets){
 		randomPoint = new Phaser.Point(gamevar.rnd.integerInRange(0, gamevar.width), gamevar.rnd.integerInRange(0, gamevar.height));
 		bullet.random = true;
-		bullet.frame = 1;
+		bullet.frame = 0;
 	} else if (bOnlyNormalBullets){
 		bullet.random = false;
 		bullet.frame = 0;
-	} else if(difficulty > 120 && gamevar.rnd.integerInRange(0, 5) == 0){
+	} else if(difficulty > 200 && gamevar.rnd.integerInRange(0, 4) == 0){
 		randomPoint = new Phaser.Point(gamevar.rnd.integerInRange(0, gamevar.width), gamevar.rnd.integerInRange(0, gamevar.height));
 		bullet.random = true;
-		bullet.frame = 1;
+		bullet.frame = 0;
 	} else {
 		bullet.random = false;
 		bullet.frame = 0;
@@ -286,6 +306,8 @@ function spawnBullet(){
 			bVertical = true;
 			break;
 	}
+
+	bullet.vertical = bVertical;
 
 	if(bVertical){
 		boundsMin = stageOffset;
@@ -336,28 +358,11 @@ function spawnCoin(){
 	// coin.timer.start();
 
 	shine.reset(_x, _y);
+	shine.alpha = 0;
 	shine.scale.setTo(.3, .3);
-	gamevar.add.tween(shine.scale).to( { x: 1.5, y: 1.5}, 1000, Phaser.Easing.Sinusoidal.InOut, true, 0, 20, true);
+	shineTween = gamevar.add.tween(shine.scale).to( { x: 1.5, y: 1.5}, 1000, Phaser.Easing.Sinusoidal.InOut, true, 0, 1000, true);
 }
 
-function resetGame(bDeath){
-	if(bDeath){
-		bDeathPause = true;
-		gamevar.time.events.add(4000, function(){
-			gamevar.state.start('gameplay');
-			resetScores();
-			resetDifficulty();
-			gamevar.stage.backgroundColor = Phaser.Color.RGBtoWebstring(Phaser.Color.getRandomColor(150, 235));
-			bDeathPause = false;
-			bPlayerDead = false;
-		});
-	} else {
-		gamevar.state.start('gameplay');
-		resetScores();
-		resetDifficulty();
-		gamevar.stage.backgroundColor = Phaser.Color.RGBtoWebstring(Phaser.Color.getRandomColor(150, 235));
-	}
-}
 
 function bulletHitByBomb(_bomb, _bullet){
 	_bullet.kill();

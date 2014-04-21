@@ -1,12 +1,14 @@
 MainState.Overlay = function(game) {
 };
 
-var lifeMeterFillRate = 30;
+var lifeMeterFillRate = 20;
+var pausedMenuObjects;
+
 
 MainState.Overlay.prototype = {
 
 	preload: function() {
-
+		gamevar.load.script('light', 'assets/LightBeam.js');
 	},
 
 	create: function() {
@@ -19,19 +21,20 @@ MainState.Overlay.prototype = {
 		gamevar.physics.enable(lifeMeter, Phaser.Physics.ARCADE, true);
 		lifeMeter.body.velocity.y = -lifeMeterFillRate;
 
+		text_paused = gamevar.add.bitmapText(100, textHeightOffset / 2 - 40, 'carrier', 'paused', 50);
+		text_paused.alpha = 0;
+		text_paused.x = (gamevar.width / 2) - getTextWidth(text_paused) / 2;
+
 	},
 
 	update: function() {
-		if(lifeMeter.y < 0){
+
+		if(!lifeEmpty && lifeMeter.y < 0){
 			if(lifeMeter.y < -100){
 				lifeMeter.y = -100;
 			}
 			lifeEmpty = true;
-		} else if(lifeMeter.y > 0){
-			if(lifeMeter.y < -100){
-				lifeMeter.y = -100;
-			}
-			lifeEmpty = true;
+			setPaused(true, true);
 		}
 
 	}

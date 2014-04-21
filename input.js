@@ -16,6 +16,9 @@ var textArray;
 var text_TEST;
 var text_header_score;
 var text_header_bombs;
+var text_paused;
+var text_score_gameover;
+var text_hiscore_gameover;
 
 var text_score_center;
 
@@ -29,24 +32,26 @@ var CONST_textHighlightAlpha = 0.8;
 MainState.Input.prototype = {
 
 	preload: function() {
-		// gamevar.load.audio('glitchitup', 'assets/sound/music/glitchitup.ogg');
-		// gamevar.load.audio('seaoflava', 'assets/sound/music/seaoflava.ogg');
-		// gamevar.load.audio('8bitfight', 'assets/sound/music/8bitfight.ogg');
-		gamevar.load.audio('justkillit', 'assets/sound/music/justkillit.ogg');
 	},
 
 	create: function() {
+
 		cursors = gamevar.input.keyboard.createCursorKeys();
 		resetKey = gamevar.input.keyboard.addKey(Phaser.Keyboard.R);
 		pauseKey = gamevar.input.keyboard.addKey(Phaser.Keyboard.ESC);
 		skipKey = gamevar.input.keyboard.addKey(Phaser.Keyboard.S);
 		//bombKey = gamevar.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-		
-		gamevar.input.onDown.add(launchBomb);
+		bindKeys();
+		gamevar.onResume.add(bindKeys, this);
+
 		//bombKey.onDown.add(launchBomb);
+
 
 		text_TEST = gamevar.add.bitmapText(200, 250, 'carrier', 'a', 40);
 		text_TEST.alpha = 0;
+
+		
+		
 
 		//IGNORE! vvvv
 		text_coins = gamevar.add.bitmapText(200, 275, 'carrier', 'Coins: ' + coins_value, 40);
@@ -62,9 +67,11 @@ MainState.Input.prototype = {
 		textArray = [text_score, text_coins, text_health, text_bombs, text_header_score, text_header_bombs];
 		textArray.forEach(function(text){
 			text.alpha = CONST_textDefaultAlpha;
-			text.x = gamevar.world.centerX - getTextWidth(text) / 2;
+			centerText(text);
 		});
-		text_score_center = text_score.x;
+		text_score_center = 376.4;
+		
+
 		text_score.alpha = 0.4;
 		text_health.alpha = 0;
 		text_coins.alpha = 0;
@@ -74,30 +81,48 @@ MainState.Input.prototype = {
 	},
 
 	update: function() {
-		if(!bMouseControl){
-			if(cursors.left.isDown){
-				playerSprite.body.velocity.x = -player_movementSpeed;
-			} else if(cursors.right.isDown){
-				playerSprite.body.velocity.x = player_movementSpeed;
-			} else {
-				playerSprite.body.velocity.x = 0;
-			}
+			
+		if(!bPaused){
+			if(!bMouseControl){
+				if(cursors.left.isDown){
+					playerSprite.body.velocity.x = -player_movementSpeed;
+				} else if(cursors.right.isDown){
+					playerSprite.body.velocity.x = player_movementSpeed;
+				} else {
+					playerSprite.body.velocity.x = 0;
+				}
 
-			if(cursors.up.isDown){
-				playerSprite.body.velocity.y = -player_movementSpeed;
-			} else if(cursors.down.isDown){
-				playerSprite.body.velocity.y = player_movementSpeed;
-			} else {
-				playerSprite.body.velocity.y = 0;
+				if(cursors.up.isDown){
+					playerSprite.body.velocity.y = -player_movementSpeed;
+				} else if(cursors.down.isDown){
+					playerSprite.body.velocity.y = player_movementSpeed;
+				} else {
+					playerSprite.body.velocity.y = 0;
+				}
+			} else if(!bDeathPause){
+				playerSprite.x = gamevar.input.x;
+				playerSprite.y = gamevar.input.y;
 			}
-		} else if(!bDeathPause){
-			playerSprite.x = gamevar.input.x;
-			playerSprite.y = gamevar.input.y;
 		}
 
 	}
 
 };
+
+function centerText(text){
+	text.x = (gamevar.width / 2) - getTextWidth(text) / 2;
+}
+
+function bindKeys(){
+	pauseKey.onDown.add(function(){
+			setPaused(!bPaused, false);
+	});
+	if(!bPaused){
+		gamevar.input.onDown.add(launchBomb);
+	} else {
+
+	}
+}
 
 function flashText(text, bStayHighlighted){
 	var textX = text.x;
@@ -155,26 +180,65 @@ function shakeText(text, amount, time, isRandomish){
 
 
 function textParticleBurst(text){
-	emitter_text = gamevar.add.emitter(-100, 0, 100);
-	emitter_text.makeParticles('trail', 0, 50);
-	// emitter_trail.setAll('scale.x', 2);
-	// emitter_trail.setAll('scale.y', 2);
-	emitter_text.setAlpha(0.5, 0, 1000);
-	emitter_text.setScale(3, 1, 3, 1, 1000);
-	//emitter_trail.setAll('alpha', .6);
-	emitter_text.gravity = 500;
-	emitter_text.width = 15;
-	emitter_text.height = 15;
-	emitter_text.particleDrag.setTo(20, 20);
-	emitter_text.angularDrag = 200;
-	// emitter_trail.minParticleScale = 1;
-	// emitter_trail.maxParticleScale = 2;
-	emitter_text.minParticleSpeed.setTo(-80, -80);
-	emitter_text.maxParticleSpeed.setTo(80, 80);
-	//console.log(emitter_text);
-	emitter_text.width = getTextWidth(text);
-	emitter_text.height = 40;
-	emitter_text.x = text.x + emitter_text.width / 2;
-	emitter_text.y = text.y + emitter_text.height / 2;
-	emitter_text.start(true, 1000, 0, 40);
+	if(graphicsLevel > 1){
+		emitter_text = gamevar.add.emitter(-100, 0, 100);
+		emitter_text.makeParticles('trail', 0, 50);
+		// emitter_trail.setAll('scale.x', 2);
+		// emitter_trail.setAll('scale.y', 2);
+		emitter_text.setAlpha(0.5, 0, 1000);
+		emitter_text.setScale(3, 1, 3, 1, 1000);
+		//emitter_trail.setAll('alpha', .6);
+		emitter_text.gravity = 100;
+		emitter_text.width = 15;
+		emitter_text.height = 15;
+		emitter_text.particleDrag.setTo(20, 20);
+		emitter_text.angularDrag = 200;
+		// emitter_trail.minParticleScale = 1;
+		// emitter_trail.maxParticleScale = 2;
+		emitter_text.minParticleSpeed.setTo(-80, -80);
+		emitter_text.maxParticleSpeed.setTo(80, 80);
+		//console.log(emitter_text);
+		emitter_text.width = getTextWidth(text);
+		emitter_text.height = 40;
+		emitter_text.x = text.x + emitter_text.width / 2;
+		emitter_text.y = text.y + emitter_text.height / 2;
+		emitter_text.start(true, 1000, 0, 40);
+	}
+}
+
+function graphicsAdvance(){
+	if(graphicsLevel < 3){
+		graphicsLevel++;
+	} else {
+		graphicsLevel = 1;
+	}
+}
+
+function volumeAdvance(all){
+		
+	if(all){
+		if(volumeLevel < 10){
+			volumeLevel += 1;
+			// Math.ceiling(volumeLevel);
+		} else {
+			volumeLevel = 0;
+		}
+		gamevar.sound.volume = volumeLevel / 20;
+	} else {
+		if(volumeLevel_music < 10){
+			volumeLevel_music += 1;
+			// Math.ceiling(volumeLevel);
+		} else {
+			volumeLevel_music = 0;
+		}
+	}
+}
+
+function toggleSound(){
+	if(gamevar.sound.mute){
+		gamevar.sound.mute = false;
+		gamevar.sound.volume = volumeLevel / 20;
+	} else {
+		gamevar.sound.mute = true;
+	}
 }

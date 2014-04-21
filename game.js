@@ -4,6 +4,8 @@ MainState.Boot = function(game){};
 MainState.Preloader = function(game){};
 MainState.Gameplay = function(game){};
 
+var bEnteredGameplayBefore = false;
+
 MainState.Boot.prototype = {
 
 	//preloadBar: Phaser.Sprite,
@@ -47,7 +49,7 @@ MainState.Preloader.prototype = {
 	create: function() {
 		this.stage.smoothed = false;
 		gamevar.state.start('menu_main');
-		inputHandler.create();
+		
 	},
 
 	update: function() {
@@ -65,7 +67,7 @@ MainState.Gameplay.prototype = {
 		gameObjects = new Phaser.Group(this, undefined, 'gameObjects');
 
 		console.log('gameplay started');
-
+		inputHandler.create();
 		level.create();
 	    player.create();
 	    overlay.create();
@@ -83,8 +85,8 @@ MainState.Gameplay.prototype = {
 
 		//gamevar.debug.body(playerSprite);
 
-		gamevar.debug.text("Difficulty: " + difficulty, 500, 100);
-		gamevar.debug.text("dead?: " + lifeEmpty, 200, 100);
+		// gamevar.debug.text("Difficulty: " + difficulty, 500, 100);
+		// gamevar.debug.text("dead?: " + lifeEmpty, 200, 100);
 		// gamevar.debug.soundInfo(currentSong, 20, 32);
 		// bullets.forEachAlive(function(bullet){gamevar.debug.geom(bullet.line);});
 	 //    gamevar.debug.text("Current Combo: " + currentCombo, 300, 300);
@@ -96,7 +98,7 @@ MainState.Gameplay.prototype = {
 	    //game.debug.text("health:" + playerHealth, playerSprite.x, playerSprite.y - 10);
 
 	    gamevar.time.advancedTiming = true;
-	    gamevar.debug.text("fps: " + gamevar.time.fps, 600, 32);
+	    // gamevar.debug.text("fps: " + gamevar.time.fps, 600, 32);
 	},
 
 	shutdown: function() {

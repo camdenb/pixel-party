@@ -9,7 +9,8 @@ var PLAYER_MAXHEALTH = 5000;
 var bombSprite;
 var bBombExploding = false;
 var timer_bombRecharge;
-var bombRechargeTime = 3000;
+var bombRechargeTime = 10000;
+var lastBombTime = 0;
 
 var score_value = 0;
 var coins_value = 0;
@@ -38,7 +39,6 @@ MainState.Player.prototype = {
 		gamevar.load.image('blackmask', 'assets/sprites/black-mask.png')
 
 		gamevar.load.image('blood', 'assets/sprites/shapes/4_red.png');
-		gamevar.load.image('trail', 'assets/sprites/shapes/4_white.png');
 		gamevar.load.image('trail-bullet', 'assets/sprites/shapes/4_orange.png');
 		//gamevar.load.spritesheet('explosion', 'assets/sprites/anim/explosion-ss.png', 128, 128);
 		
@@ -46,7 +46,10 @@ MainState.Player.prototype = {
 
 	create: function() {
 
-		initLocalStorage();
+		// initLocalStorage();
+		if(store.get('hiscore') == null){
+			store.set('hiscore', 0)
+		}
 
 		bombSprite = gamevar.add.sprite(-200, 0, 'explosion');
 		//bombSprite.animations.add('explode', [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17], 10);
@@ -119,31 +122,177 @@ MainState.Player.prototype = {
 		//timer_bombRecharge.start();
 		hasBomb = true;
 
+		if(bEnteredGameplayBefore){
+			// setPaused(false);
+		}
+
 	},
 
 	update: function() {
-		gamevar.physics.arcade.overlap(playerSprite, bullets, playerHitByBullet);
-		gamevar.physics.arcade.overlap(playerSprite, coins, playerCollectedCoin);
+			
+		if(!bPaused){
+			gamevar.physics.arcade.overlap(playerSprite, bullets, playerHitByBullet);
+			gamevar.physics.arcade.overlap(playerSprite, coins, playerCollectedCoin);
 
-		if(graphicsLevel > 1){
-			emitter_trail.x = playerSprite.x;
-			emitter_trail.y = playerSprite.y;
-			if(Math.abs(playerSprite.deltaX) == 0 && Math.abs(playerSprite.deltaY) == 0){
-				emitter_trail.on = false;
-			} else if(!emitter_trail.on){
-				emitter_trail.start(false, 700, 0, 0);
+			if(graphicsLevel > 1){
+				emitter_trail.x = playerSprite.x;
+				emitter_trail.y = playerSprite.y;
+				if(Math.abs(playerSprite.deltaX) == 0 && Math.abs(playerSprite.deltaY) == 0){
+					emitter_trail.on = false;
+				} else if(!emitter_trail.on){
+					emitter_trail.start(false, 700, 0, 0);
+				}
+			}
+
+			if(!hasBomb){
+				text_bombs.alpha = CONST_textDefaultAlpha;
+			} else {
+				text_bombs.alpha = CONST_textHighlightAlpha;
 			}
 		}
-
-		if(!hasBomb){
-			text_bombs.alpha = CONST_textDefaultAlpha;
-		} else {
-			text_bombs.alpha = CONST_textHighlightAlpha;
-		}
-
 	}
 
 };
+
+function resetGame(){
+	resetCoinsAndBullets();
+	resetScore();
+	lifeEmpty = false;
+	lifeMeter.y = gamevar.height + lifeMeterFillRate;
+	resetDifficulty();
+}
+
+function resetCoinsAndBullets(){
+	bullets.forEachAlive(function(bul){
+		bul.kill();
+	});
+}
+
+function resetDifficulty(){
+
+	console.log(difficulty);
+	maxDirectionRange = 0;
+	difficulty = 0;
+
+	bulletSpawnInterval = 275;
+	bulletVelocity = 210;
+	bulletVelocity_targeted = 200;
+	
+
+}
+
+function resetScore(){
+	score_value = 0;
+	text_score.setText(score_value);
+	setHasBomb(true);
+	text_bombs.setText(bomb_value);
+}
+
+function setPaused(_bPaused, _bGameOver){
+	bPaused = _bPaused;
+
+	var firstButton;
+	var firstButtonAction;
+
+	if(_bGameOver){
+		text_paused.setText('game over');
+		firstButton = 'restart';
+		firstButtonAction = 'btn_restart';
+	} else {
+		text_paused.setText('paused');
+		firstButton = 'resume';
+		firstButtonAction = 'btn_resume';
+	}
+
+	text_paused.x = (gamevar.width / 2) - getTextWidth(text_paused) / 2;
+
+	if(_bPaused){
+
+		text_score_gameover = gamevar.add.bitmapText(0, 150, 'carrier', 'Score:' + score_value, 30);
+		if(score_value > store.get('hiscore')){
+			store.set('hiscore', score_value);
+		}
+		text_hiscore_gameover = gamevar.add.bitmapText(0, 185, 'carrier', 'Hi-Score:' + store.get('hiscore'), 30);
+		centerText(text_score_gameover);
+		centerText(text_hiscore_gameover);
+
+		gamevar.add.tween(pausedMask).to( { alpha: .6}, 100, Phaser.Easing.Linear.None, true, 0);
+		// pausedMask.alpha = 0.6;
+		text_paused.alpha = 1;
+
+		pausedMenuObjects = addMenus([firstButtonAction, firstButton, 40, 'btn_mainmenu', 'main menu', 40], 300);
+
+		console.log('paused');
+		timer_bombRecharge.pause();
+		timer_difficulty.pause();
+		timer_scorePerSec.pause();
+		timer_shake.pause();
+		lifeMeter.body.velocity.y = 0;
+		bullets.forEach(function(bul){
+			if(!_bGameOver){
+				bul.body.velocity.y = 0;
+			}
+		});
+		emitter_trail.on = false;
+		coins.forEach(function(coin){
+			coin.trail.on = false;
+		});
+		shineTween.pause();
+		gamevar.input.onDown.remove(launchBomb, this);
+		// gamevar.world.setBounds(0, 0, 800, 600);
+	} else {
+
+		gamevar.add.tween(pausedMask).to( { alpha: 0}, 200, Phaser.Easing.Linear.None, true, 0);
+		// pausedMask.alpha = 0;
+		text_paused.alpha = 0;
+
+		if(pausedMenuObjects != null){
+			for(var i = 0; i < pausedMenuObjects.length; i++){
+				if(i % 2 == 0){
+					pausedMenuObjects[i].kill();
+				} else {
+					pausedMenuObjects[i].destroy();
+				}
+			}
+		}
+
+		text_score_gameover.destroy();
+		text_hiscore_gameover.destroy();
+
+		console.log('unpaused');
+		timer_shake.resume();
+		var newBombTimer = 0;
+		timer_bombRecharge.resume();
+		// if(bombRechargeTime - (gamevar.time.now - lastBombTime) < 0){
+		// 	newBombTimer = 0;
+		// } else {
+		// 	newBombTimer = bombRechargeTime - (gamevar.time.now - lastBombTime);
+		// }
+		// timer_bombRecharge.add(newBombTimer, function(){
+		// 	setHasBomb(true); 
+		// 	text_bombs.setText(bomb_value);
+		// 	flashText(text_bombs, true);
+		// });
+		timer_difficulty.resume();
+		timer_scorePerSec.resume();
+		lifeMeter.body.velocity.y = -lifeMeterFillRate;
+		bullets.forEach(function(bul){
+			if(bul.vertical){
+				bul.body.velocity.x = (bul.direction == 1) ? -bulletVelocity : bulletVelocity;
+			} else {
+				bul.body.velocity.y = (bul.direction == 2) ? -bulletVelocity : bulletVelocity;
+			}
+			
+		});
+		emitter_trail.on = true;
+		coins.forEach(function(coin){
+			coin.trail.on = true;
+		});
+		shineTween.resume();
+		gamevar.input.onDown.add(launchBomb);
+		// gamevar.world.setBounds(-50, -50, 850, 650);
+	}
+}
 
 function initLocalStorage(){
 	coins_value = store.get('coins_value') || 0;
@@ -173,21 +322,10 @@ function flashBomb(){
 }
 
 
-function setPaused(bPaused){
-	if(bPaused){
-		pausedMask.alpha = 0;
-		gamevar.add.tween(pausedMask).to( { alpha: .6}, 100, Phaser.Easing.Linear.None, true, 0).onComplete.add(function(){
-			// gamevar.state.start('menu_paused', false);
-			gamevar.paused = true;
-		});
-	} else {
-		pausedMask.alpha = 0;
-		gamevar.paused = false;
-	}
-}
 
 function launchBomb(){
-	if(hasBomb){
+	if(hasBomb && !bPaused){
+		lastBombTime = gamevar.time.now;
 		shakeScreen(20, 100, true);
 		flashBomb();
 		bullets.forEachAlive(function(_bullet){_bullet.kill();});
@@ -201,11 +339,13 @@ function launchBomb(){
 		timer_bombRecharge.add(bombRechargeTime, function(){
 			setHasBomb(true); 
 			text_bombs.setText(bomb_value);
+			centerText(text_bombs);
+			text_bombs.y = gamevar.height - textHeightOffset;
 			flashText(text_bombs, true);
 		});
 		timer_bombRecharge.start();
-	} else {
-		shakeText(text_bombs, 4, 100, true);
+	} else if(!bPaused){
+		shakeText(text_bombs, 3, 50, true);
 		text_bombs.alpha = CONST_textDefaultAlpha;
 	}
 }
@@ -256,30 +396,6 @@ function addHealth(amount){
 	}
 }
 
-function resetScores(){
-
-	//coins_value = 0;
-	//text_coins.setText('Coins: ' + coins_value);
-
-	score_value = 0;
-	text_score.setText(score_value);
-
-	health_value = PLAYER_MAXHEALTH;
-	text_health.setText('Health: ' + health_value);
-
-}
-
-function resetDifficulty(){
-
-	bulletSpawnInterval = CONST_bulletSpawnInterval;
-	bulletVelocity = CONST_bulletVelocity;
-	bulletVelocity_targeted = CONST_bulletVelocity_targeted;
-
-	difficulty = 0;
-	console.log(difficulty);
-	maxDirectionRange = 0;
-
-}
 
 function setHasBomb(hasBomb_param){
 	if(hasBomb_param){

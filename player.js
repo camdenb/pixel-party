@@ -232,11 +232,13 @@ function setPaused(_bPaused, _bGameOver){
 				bul.body.velocity.y = 0;
 			}
 		});
-		if(emitter_trail != null){
+		if(graphicsLevel > 1){
 			emitter_trail.on = false;
 		}
 		coins.forEach(function(coin){
+			if(graphicsLevel > 1){
 			coin.trail.on = false;
+			}
 		});
 		gamevar.input.onDown.remove(launchBomb, this);
 		// gamevar.world.setBounds(0, 0, 800, 600);
@@ -284,9 +286,13 @@ function setPaused(_bPaused, _bGameOver){
 			}
 			
 		});
-		emitter_trail.on = true;
+		if(graphicsLevel > 1){
+			emitter_trail.on = true;
+		}
 		coins.forEach(function(coin){
+			if(graphicsLevel > 1){
 			coin.trail.on = true;
+		}
 		});
 		gamevar.input.onDown.add(launchBomb);
 		// gamevar.world.setBounds(-50, -50, 850, 650);

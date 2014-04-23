@@ -28,7 +28,7 @@ MainState.Overlay.prototype = {
 
 	update: function() {
 
-		if(!lifeEmpty && lifeMeter.y < 0){
+		if(!lifeEmpty && lifeMeter.y < -20){
 			if(lifeMeter.y < -100){
 				lifeMeter.y = -100;
 			}

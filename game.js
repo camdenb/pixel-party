@@ -46,6 +46,7 @@ MainState.Preloader.prototype = {
 		setBGRandomColor();
 		this.load.onFileComplete.add(function(){
 			percentText.setText(gamevar.load.progress + '%');
+			shakeText(percentText);
 		});
 		inputHandler.preload();
 

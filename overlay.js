@@ -8,12 +8,11 @@ var pausedMenuObjects;
 MainState.Overlay.prototype = {
 
 	preload: function() {
-		gamevar.load.script('light', 'assets/LightBeam.js');
 	},
 
 	create: function() {
 
-		lifeMeter = gamevar.add.sprite(-100, -100, 'bullet', 1);
+		lifeMeter = gamevar.add.sprite(-100, -100, 'square', 1);
 		lifeMeter.scale.setTo(60, 50);
 		lifeMeter.x = -100;
 		lifeMeter.y = gamevar.height + 10;

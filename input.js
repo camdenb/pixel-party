@@ -22,6 +22,8 @@ var text_hiscore_gameover;
 
 var text_score_center;
 
+var text_alert;
+
 var textHeightOffset = 200;
 
 var emitter_text;
@@ -36,13 +38,13 @@ MainState.Input.prototype = {
 
 	create: function() {
 
-		cursors = gamevar.input.keyboard.createCursorKeys();
-		resetKey = gamevar.input.keyboard.addKey(Phaser.Keyboard.R);
+		gamevar.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
+
 		pauseKey = gamevar.input.keyboard.addKey(Phaser.Keyboard.ESC);
-		skipKey = gamevar.input.keyboard.addKey(Phaser.Keyboard.S);
 		//bombKey = gamevar.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 		bindKeys();
-		gamevar.onResume.add(bindKeys, this);
+		gamevar.onPause.add(windowPaused, this);
+		gamevar.onResume.add(windowResumed, this);
 
 		//bombKey.onDown.add(launchBomb);
 
@@ -57,6 +59,9 @@ MainState.Input.prototype = {
 		text_coins = gamevar.add.bitmapText(200, 275, 'carrier', 'Coins: ' + coins_value, 40);
 		text_health = gamevar.add.bitmapText(200, 350, 'carrier', 'Health: ' + health_value, 40);
 		//        ^^^^
+
+		text_alert = gamevar.add.bitmapText(0, -100, 'carrier', '', 30);
+		text_alert.alpha = 0;
 
 		text_header_score = gamevar.add.bitmapText(200, textHeightOffset, 'carrier', 'Score', 40);
 		text_score = gamevar.add.bitmapText(200, textHeightOffset + 50, 'carrier', score_value + '', 40);
@@ -109,13 +114,41 @@ MainState.Input.prototype = {
 
 };
 
+function setFullscreen(full){
+	if(full){
+		gamevar.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
+		gamevar.scale.startFullScreen(false);
+	} else {
+
+		// gamevar.scale.stopFullScreen();
+		// gamevar.scale.refresh();
+	}
+}
+
 function centerText(text){
 	text.x = (gamevar.width / 2) - getTextWidth(text) / 2;
 }
 
+function windowPaused(){
+	bgMusic.pause();
+	if(!bPaused && gamevar.state.current == 'gameplay'){
+		pausedMask.alpha = 0.6;
+		setPaused(true, false);
+	}
+}
+
+function windowResumed(){
+	if(!bgMusic.isPlaying && !music_menu.isPlaying){
+		bgMusic.play();
+	}
+	bindKeys();
+}
+
 function bindKeys(){
 	pauseKey.onDown.add(function(){
-			setPaused(!bPaused, false);
+		if(!bPaused){
+			setPaused(true, false);
+		}
 	});
 	if(!bPaused){
 		gamevar.input.onDown.add(launchBomb);
@@ -124,16 +157,25 @@ function bindKeys(){
 	}
 }
 
-function flashText(text, bStayHighlighted){
+function textAlert(text, y){
+	text_alert.setText(text);
+	text_alert.y = y;
+	centerText(text_alert);
+	gamevar.add.tween(text_alert).to( { alpha: .4}, 100, Phaser.Easing.Linear.None, true, 0, 0, false).to( { alpha: 0}, 1500, Phaser.Easing.Linear.None, true, 1500, 0, false);
+}
+
+function flashText(text, bStayHighlighted, finalAlpha, endAlpha){
+	finalAlpha = finalAlpha || 1;
+	endAlpha = endAlpha || CONST_textDefaultAlpha;
 	var textX = text.x;
 	var textY = text.y;
 	gamevar.add.tween(text).to( { x: textX - 10, y: textY - 10}, 100, Phaser.Easing.Linear.None, true, 0, 0, false).to( { x: textX , y: textY}, 200, Phaser.Easing.Linear.None, true, 0, 0, true);
 
 	
 	if(bStayHighlighted){
-		gamevar.add.tween(text).to( { alpha: 1}, 100, Phaser.Easing.Linear.None, true, 0, 0, false).to( { alpha: CONST_textHighlightAlpha}, 1000, Phaser.Easing.Linear.None, true, 0, 0, false);
+		gamevar.add.tween(text).to( { alpha: finalAlpha}, 100, Phaser.Easing.Linear.None, true, 0, 0, false).to( { alpha: CONST_textHighlightAlpha}, 1000, Phaser.Easing.Linear.None, true, 0, 0, false);
 	} else {
-		gamevar.add.tween(text).to( { alpha: 1}, 100, Phaser.Easing.Linear.None, true, 0, 0, false).to( { alpha: CONST_textDefaultAlpha}, 1000, Phaser.Easing.Linear.None, true, 0, 0, false);
+		gamevar.add.tween(text).to( { alpha: finalAlpha}, 100, Phaser.Easing.Linear.None, true, 0, 0, false).to( { alpha: endAlpha}, 1000, Phaser.Easing.Linear.None, true, 0, 0, false);
 	}
 	
 
@@ -212,6 +254,7 @@ function graphicsAdvance(){
 	} else {
 		graphicsLevel = 1;
 	}
+	store.set('graphicsLevel', graphicsLevel);
 }
 
 function volumeAdvance(all){
@@ -219,19 +262,21 @@ function volumeAdvance(all){
 	if(all){
 		if(volumeLevel < 10){
 			volumeLevel += 1;
-			// Math.ceiling(volumeLevel);
 		} else {
 			volumeLevel = 0;
 		}
 		gamevar.sound.volume = volumeLevel / 20;
+		store.set('volume_all', volumeLevel);
 	} else {
 		if(volumeLevel_music < 10){
 			volumeLevel_music += 1;
-			// Math.ceiling(volumeLevel);
 		} else {
 			volumeLevel_music = 0;
 		}
+		console.log('set music');
+		store.set('volume_music', volumeLevel_music);
 	}
+
 }
 
 function toggleSound(){

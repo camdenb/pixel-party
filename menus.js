@@ -5,11 +5,12 @@ MainState.Menus.Paused = function(game){};
 MainState.Menus.Main = function(game){};
 MainState.Menus.Credits = function(game){};
 MainState.Menus.Options = function(game){};
+MainState.Menus.HowTo = function(game){};
 
 var buttonOffset = 10;
-var menuItemSpace = 80;
+var menuItemSpace = 60;
 var buttonSizeAdjustment = 10;
-var backButtonY = 500;
+var backButtonY = 550;
 
 var advanceScreenKey;
 var nextScreen = 'gameplay';
@@ -36,18 +37,14 @@ var music_menu;
 var volumeLevel = 3;
 var volumeLevel_music = 3;
 
+var menuLifeMeter;
+var menuPlayer;
+var testBullet;
+var testCoin;
+var testCoin1;
+var testCoin2;
+
 var menuMusicPlaying = false;
-
-MainState.Menus.Paused.prototype = {
-
-	create: function() {
-
-	},
-
-	update: function() {
-	}
-
-};
 
 
 MainState.Menus.Main.prototype = {
@@ -55,21 +52,35 @@ MainState.Menus.Main.prototype = {
 
 	preload: function(){
 		this.load.image('title', 'assets/title.png');
-		this.load.audio('switch', 'assets/sound/ui/switch30.ogg');
-		this.load.audio('click', 'assets/sound/ui/switch32.ogg');
-		this.load.audio('limbo', 'assets/sound/music/limbo.ogg');
 		this.load.image('trail', 'assets/sprites/shapes/4_white.png');
 		this.load.image('bearsoap', 'assets/bearsoap_transparent.png');
 	},
 
 	create: function() {
+		
+		if(menuLifeMeter != null && menuLifeMeter.exists){
+				menuLifeMeter.destroy();
+		}
+
+		if(store.get('maxDifficulty') == null){
+			store.set('maxDifficulty', 0);
+		}
+		if(store.get('volume_all') != null){
+			volumeLevel = store.get('volume_all');
+		}
+		if(store.get('volume_music') != null){
+			volumeLevel_music = store.get('volume_music');
+		}
+		graphicsLevel = store.get('graphicsLevel') || 2;
+
 		gamevar.world.setBounds(-30, -30, 830, 630);
 		gamevar.sound.volume = volumeLevel / 10;
+		music_menu = this.add.audio('limbo', 1, true);
+		music_menu.volume = volumeLevel_music / 10;
 		if(!menuMusicPlaying){
-			music_menu = gamevar.add.audio('limbo', 1, true);
-			music_menu.volume = volumeLevel_music;
 			music_menu.play();
 			menuMusicPlaying = true;
+			console.log('playing music!');
 		}
 
 		title = gamevar.add.image(0, 0, 'title');
@@ -114,7 +125,7 @@ MainState.Menus.Main.prototype = {
 		sound_switch = this.add.audio('switch');
 		sound_click = this.add.audio('click');
 		//this.add.button(this.world.centerX - 64, 300, 'button_play', buttonPressed_play, this);
-		addMenus(['btn_play', 'play', 40, 'btn_options', 'options', 40, 'btn_credits', 'credits', 40], 300);
+		addMenus(['btn_play', 'play', 30, 'btn_howto', 'how to play', 30, 'btn_options', 'options', 30, 'btn_credits', 'credits', 30], 275);
 		nextScreen = 'gameplay';
 
 		advanceScreenKey = gamevar.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -180,17 +191,30 @@ MainState.Menus.Credits.prototype = {
 
 
 		centerText(gamevar.add.bitmapText(0, 185, 'carrier', 'Developed by Bearsoap Software', 20));
-		bearsoapImg = gamevar.add.image(0, 220, 'bearsoap');
+		bearsoapImg = gamevar.add.image(100, 330, 'bearsoap');
+		bearsoapImg.anchor.setTo(0.5, 0.5);
 		bearsoapImg.scale.setTo(0.7, 0.7);
-		bearsoapImg.x = gamevar.width / 2 - bearsoapImg.width / 2;
+		bearsoapImg.x = gamevar.width / 2;
 		bearsoapImgX = bearsoapImg.x;
 		bearsoapImgY = bearsoapImg.y;
+		bearsoapImg.inputEnabled = true;
+		bearsoapImg.events.onInputDown.add(function(){
+			window.open('https://twitter.com/bearsoapdev');
+		}, this);
+		bearsoapImg.events.onInputOver.add(function(){
+			shakeBear();
+			bearsoapImg.scale.setTo(0.8, 0.8);
+		}, this);
+		bearsoapImg.events.onInputOut.add(function(){
+			bearsoapImg.scale.setTo(0.7, 0.7);
+		}, this);
+
 
 		var emitter_bear = gamevar.add.emitter(-100, 0, 100);
 		emitter_bear.makeParticles('trail', 0, 200);
 		// emitter_trail.setAll('scale.x', 2);
 		// emitter_trail.setAll('scale.y', 2);
-		emitter_bear.setAlpha(0.5, 0, 2000);
+		emitter_bear.setAlpha(0.4, 0, 2000);
 		emitter_bear.setScale(3, 1, 3, 1, 2000);
 		//emitter_trail.setAll('alpha', .6);
 		emitter_bear.gravity = -100;
@@ -203,26 +227,106 @@ MainState.Menus.Credits.prototype = {
 		//console.log(emitter_bear);
 		emitter_bear.width = bearsoapImg.width;
 		emitter_bear.height = bearsoapImg.height;
-		emitter_bear.x = bearsoapImg.x + emitter_bear.width / 2 - 5;
-		emitter_bear.y = bearsoapImg.y + emitter_bear.height / 2;
-		emitter_bear.start(false, 2000, 100, 0);
+		emitter_bear.x = bearsoapImg.x;
+		emitter_bear.y = bearsoapImg.y;
+		emitter_bear.start(false, 2000, 150, 0);
 		
-
+		centerText(gamevar.add.bitmapText(0, 480, 'carrier', 'High Score:' + store.get('hiscore'), 15));
+		centerText(gamevar.add.bitmapText(0, 510, 'carrier', 'Most Time Survived:' + store.get('maxDifficulty') + ' seconds', 15));
 
 		addBackButton();
 	},
 
 	update: function() {
 		if(gamevar.time.now - lastBearShakeTime > bearShakeInterval){
-			lastBearShakeTime = gamevar.time.now;
-			bearShakeInterval = gamevar.rnd.integerInRange(1000, 4000);
-			setBGRandomColor(150);
-			bearsoapImg.x = bearsoapImgX;
-			bearsoapImg.y = bearsoapImgY;
-			var shakeAmt = gamevar.rnd.integerInRange(3, 10);
-			shakeScreen(shakeAmt / 2, 50, true);
-			console.log('shake');
-			shakeText(bearsoapImg, shakeAmt, 50, true);
+			shakeBear();
+		}
+	}
+
+};
+
+function shakeBear(){
+	lastBearShakeTime = gamevar.time.now;
+	bearShakeInterval = gamevar.rnd.integerInRange(2000, 6000);
+	setBGRandomColor(150);
+	bearsoapImg.x = bearsoapImgX;
+	bearsoapImg.y = bearsoapImgY;
+	var shakeAmt = gamevar.rnd.integerInRange(3, 10);
+	shakeScreen(shakeAmt / 2, 50, true);
+	shakeText(bearsoapImg, shakeAmt, 50, true);
+}
+
+MainState.Menus.HowTo.prototype = {
+
+	create: function() {
+
+		menuLifeMeter = gamevar.add.sprite(-100, -100, 'square', 1);
+		menuLifeMeter.scale.setTo(60, 50);
+		menuLifeMeter.x = -100;
+		menuLifeMeter.y = gamevar.height + 10;
+		menuLifeMeter.alpha = .2;
+		gamevar.physics.enable(menuLifeMeter, Phaser.Physics.ARCADE, true);
+		menuLifeMeter.body.velocity.y = -lifeMeterFillRate;
+
+		centerText(gamevar.add.bitmapText(0, 50, 'carrier', 'avoid these guys.', 15));
+		centerText(gamevar.add.bitmapText(0, 65 + 5, 'carrier', 'hit one, and the water level rises.', 15));
+		this.add.image(500, 100 + 10, 'square', 0);
+		this.add.image(420, 80 + 15, 'square', 0);
+
+		testBullet = this.add.sprite(350, 100 + 20, 'square', 0);
+
+		centerText(gamevar.add.bitmapText(0, 160, 'carrier', 'click to launch a bomb!', 15));
+		centerText(gamevar.add.bitmapText(0, 185, 'carrier', 'bombs kill all bullets on screen.', 15));
+
+		centerText(gamevar.add.bitmapText(0, 220 + 25, 'carrier', 'the water keeps rising as time goes on.', 15));
+		centerText(gamevar.add.bitmapText(0, 235 + 30, 'carrier', 'it\'s okay to touch,', 15));
+		centerText(gamevar.add.bitmapText(0, 250 + 35, 'carrier', 'but don\'t let it reach the top', 15));
+		centerText(gamevar.add.bitmapText(0, 265 + 40, 'carrier', 'or game over!', 15));
+
+		centerText(gamevar.add.bitmapText(0, 380, 'carrier', 'collect these to lower the water.', 15));
+		testCoin1 = this.add.sprite(320, 370 + 50, 'square', 2);
+		testCoin2 = this.add.sprite(470, 370 + 60, 'square', 2);
+		testCoin = this.add.sprite(250, 370 + 40, 'square', 2);
+
+		testCoin1.animations.add('cycle', [2, 3, 4, 5], 15, true);
+		testCoin2.animations.add('cycle', [2, 3, 4, 5], 15, true);
+		testCoin.animations.add('cycle', [2, 3, 4, 5], 15, true);
+		testCoin1.animations.play('cycle');
+		testCoin2.animations.play('cycle');
+		testCoin.animations.play('cycle');
+
+		this.physics.enable([testBullet, testCoin], Phaser.Physics.ARCADE, true);
+
+		menuPlayer = this.add.sprite(510, -200, 'player');
+		this.physics.enable([menuPlayer], Phaser.Physics.ARCADE, true);
+		menuPlayer.scale.setTo(.75, .75);
+		menuPlayer.anchor.setTo(0.5, 0.5);
+		var newVect = new Phaser.Point(testCoin.x - menuPlayer.x, testCoin.y - menuPlayer.y);
+		newVect.normalize();
+		newVect.multiply(65, 65);
+			
+		setTimeout(function(){
+			menuPlayer.body.velocity = newVect;
+		}, 6000);
+
+		
+
+		centerText(gamevar.add.bitmapText(0, 475, 'carrier', 'good luck!', 20));
+
+		addBackButton();
+	},
+
+	update: function() {
+		gamevar.physics.arcade.overlap(testBullet, menuPlayer, function(bul){
+			bul.kill();
+			menuLifeMeter.y -= 100;
+		});
+		gamevar.physics.arcade.overlap(testCoin, menuPlayer, function(coin){
+			coin.kill();
+			menuLifeMeter.y += 30;
+		});
+		if(menuLifeMeter.y < 0){
+			menuLifeMeter.y = 0;
 		}
 	}
 
@@ -238,7 +342,7 @@ MainState.Menus.Options.prototype = {
 	},
 
 	update: function() {
-		music_menu.volume = volumeLevel_music;
+		music_menu.volume = volumeLevel_music / 10;
 	}
 
 };
@@ -313,11 +417,11 @@ function buttonInputOver(_img){
 }
 
 function buttonPressed(btn){
-	console.log(btn.name);
+	//console.log(btn.name);
 	sound_click.play();
 	switch(btn.name){
 		case 'btn_play':
-			music_menu.stop();
+			menuMusicPlaying = false;
 			gamevar.state.start('gameplay', true);
 			break;
 		case 'btn_options':
@@ -335,8 +439,13 @@ function buttonPressed(btn){
 			gamevar.state.start(parentScreen, true);
 			break;
 		case 'btn_mainmenu':
+			if(difficulty > store.get('maxDifficulty')){
+				store.set('maxDifficulty', difficulty);
+			}
 			bgMusic.stop();
-			music_menu.play();
+			if(!music_menu.isPlaying){
+				music_menu.play();
+			}
 			setPaused(false);
 			resetGame();
 			gamevar.state.start('menu_main', true);
@@ -358,8 +467,15 @@ function buttonPressed(btn){
 			optionsMenuArr[1].setText('master volume:' + volumeLevel);
 			break;
 		case 'btn_volumeLevel_music':
+		setFullscreen(false);
 			volumeAdvance(false);
 			optionsMenuArr[3].setText('music volume:' + volumeLevel_music);
+			break;
+		case 'btn_howto':
+			gamevar.state.start('menu_howto', true);
+			break;
+		case 'btn_fullscreen':
+			setFullscreen(true);
 			break;
 		default:
 	}

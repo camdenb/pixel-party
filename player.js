@@ -48,7 +48,7 @@ MainState.Player.prototype = {
 
 		// initLocalStorage();
 		if(store.get('hiscore') == null){
-			store.set('hiscore', 0)
+			store.set('hiscore', 0);
 		}
 
 		bombSprite = gamevar.add.sprite(-200, 0, 'explosion');
@@ -95,9 +95,9 @@ MainState.Player.prototype = {
 		playerSprite.scale.setTo(.75, .75);
 		playerSprite.anchor.setTo(0.5, 0.5);
 
-		gamevar.physics.enable([playerSprite, bombSprite], Phaser.Physics.ARCADE, true);
+		gamevar.physics.enable([playerSprite], Phaser.Physics.ARCADE, true);
 
-		playerSprite.body.setSize(20, 20);
+		//playerSprite.body.setSize(20, 20);
 
 		hurtMask = gamevar.add.sprite(-100, -100, 'redmask');
 		hurtMask.scale.setTo(60, 60);
@@ -122,9 +122,6 @@ MainState.Player.prototype = {
 		//timer_bombRecharge.start();
 		hasBomb = true;
 
-		if(bEnteredGameplayBefore){
-			// setPaused(false);
-		}
 
 	},
 
@@ -190,11 +187,13 @@ function resetScore(){
 
 function setPaused(_bPaused, _bGameOver){
 	bPaused = _bPaused;
-
 	var firstButton;
 	var firstButtonAction;
 
 	if(_bGameOver){
+		if(difficulty > store.get('maxDifficulty')){
+			store.set('maxDifficulty', difficulty);
+		}
 		text_paused.setText('game over');
 		firstButton = 'restart';
 		firstButtonAction = 'btn_restart';
@@ -237,7 +236,6 @@ function setPaused(_bPaused, _bGameOver){
 		coins.forEach(function(coin){
 			coin.trail.on = false;
 		});
-		shineTween.pause();
 		gamevar.input.onDown.remove(launchBomb, this);
 		// gamevar.world.setBounds(0, 0, 800, 600);
 	} else {
@@ -288,7 +286,6 @@ function setPaused(_bPaused, _bGameOver){
 		coins.forEach(function(coin){
 			coin.trail.on = true;
 		});
-		shineTween.resume();
 		gamevar.input.onDown.add(launchBomb);
 		// gamevar.world.setBounds(-50, -50, 850, 650);
 	}
@@ -324,6 +321,7 @@ function flashBomb(){
 
 
 function launchBomb(){
+
 	if(hasBomb && !bPaused){
 		lastBombTime = gamevar.time.now;
 		shakeScreen(20, 100, true);
@@ -356,7 +354,6 @@ function playerHitByBullet(_player, _bullet){
 		flashHurt();
 		_bullet.kill();
 		//addScore(-50);
-		addHealth(-1);
 		addToLifeMeter(-100);
 	}
 }

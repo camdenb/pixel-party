@@ -18,8 +18,8 @@ MainState.Boot.prototype = {
 
 	create: function() {
 		gamevar.state.start('preload');
-	}
-,
+	},
+
 	update: function() {
 
 	}
@@ -30,19 +30,21 @@ MainState.Preloader.prototype = {
 
 	preload: function() {
 
-		this.add.bitmapText(this.world.centerX - 200, this.world.centerY + 200, 'carrier', 'Loading...', 40);
-		this.preloadBar = this.add.sprite(this.world.centerX, this.world.centerY, 'preloadBar');
-		//this.preloadBar.scale.setTo(1,1);
-		this.preloadBar.anchor.setTo(.5,.5);
-		this.preloadBar.x = this.world.centerX;
-		this.preloadBar.y = this.world.centerY;
-		this.load.setPreloadSprite(this.preloadBar, false);
+		centerText(this.add.bitmapText(this.world.centerX, this.world.centerY - 25, 'carrier', gamevar.load.progressFloat + '%', 50));
+
+		centerText(this.add.bitmapText(this.world.centerX - 200, this.world.centerY + 200, 'carrier', 'Loading', 40));
+		// this.preloadBar = this.add.sprite(this.world.centerX, this.world.centerY, 'preloadBar');
+		// //this.preloadBar.scale.setTo(1,1);
+		// this.preloadBar.anchor.setTo(.5,.5);
+		// this.preloadBar.x = this.world.centerX;
+		// this.preloadBar.y = this.world.centerY;
+		// this.load.setPreloadSprite(this.preloadBar, false);
 
 		gamevar.load.image('rect', 'assets/sprites/shapes/rect.png');
+		inputHandler.preload();
 
 		level.preload();
 	    player.preload();
-	    inputHandler.preload();
 	    overlay.preload();
 	},
 
@@ -83,7 +85,7 @@ MainState.Gameplay.prototype = {
 
 	render: function() {
 
-		//gamevar.debug.body(playerSprite);
+		// gamevar.debug.quadTree(gamevar.physics.arcade.quadTree);
 
 		// gamevar.debug.text("Difficulty: " + difficulty, 500, 100);
 		// gamevar.debug.text("dead?: " + lifeEmpty, 200, 100);

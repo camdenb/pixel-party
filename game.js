@@ -5,6 +5,7 @@ MainState.Preloader = function(game){};
 MainState.Gameplay = function(game){};
 
 var bEnteredGameplayBefore = false;
+var percentText;
 
 MainState.Boot.prototype = {
 
@@ -30,7 +31,8 @@ MainState.Preloader.prototype = {
 
 	preload: function() {
 
-		centerText(this.add.bitmapText(this.world.centerX, this.world.centerY - 25, 'carrier', gamevar.load.progressFloat + '%', 50));
+		percentText = this.add.bitmapText(this.world.centerX, this.world.centerY - 25, 'carrier', 0 + '%', 50);
+		centerText(percentText);
 
 		centerText(this.add.bitmapText(this.world.centerX - 200, this.world.centerY + 200, 'carrier', 'Loading', 40));
 		// this.preloadBar = this.add.sprite(this.world.centerX, this.world.centerY, 'preloadBar');
@@ -41,6 +43,9 @@ MainState.Preloader.prototype = {
 		// this.load.setPreloadSprite(this.preloadBar, false);
 
 		gamevar.load.image('rect', 'assets/sprites/shapes/rect.png');
+		this.load.onFileComplete.add(function(){
+			percentText.setText(gamevar.load.progress + '%');
+		});
 		inputHandler.preload();
 
 		level.preload();
@@ -55,6 +60,7 @@ MainState.Preloader.prototype = {
 	},
 
 	update: function() {
+
 	}
 
 };

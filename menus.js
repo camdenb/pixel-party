@@ -277,11 +277,12 @@ MainState.Menus.HowTo.prototype = {
 
 		centerText(gamevar.add.bitmapText(0, 160, 'carrier', 'click to launch a bomb!', 15));
 		centerText(gamevar.add.bitmapText(0, 185, 'carrier', 'bombs kill all bullets on screen.', 15));
+		centerText(gamevar.add.bitmapText(0, 210, 'carrier', 'bombs take 10 seconds to recharge.', 15));
 
-		centerText(gamevar.add.bitmapText(0, 220 + 25, 'carrier', 'the water keeps rising as time goes on.', 15));
-		centerText(gamevar.add.bitmapText(0, 235 + 30, 'carrier', 'it\'s okay to touch,', 15));
-		centerText(gamevar.add.bitmapText(0, 250 + 35, 'carrier', 'but don\'t let it reach the top', 15));
-		centerText(gamevar.add.bitmapText(0, 265 + 40, 'carrier', 'or game over!', 15));
+		centerText(gamevar.add.bitmapText(0, 220 + 35, 'carrier', 'the water keeps rising as time goes on.', 15));
+		centerText(gamevar.add.bitmapText(0, 235 + 40, 'carrier', 'it\'s okay to touch,', 15));
+		centerText(gamevar.add.bitmapText(0, 250 + 45, 'carrier', 'but don\'t let it reach the top', 15));
+		centerText(gamevar.add.bitmapText(0, 265 + 50, 'carrier', 'or game over!', 15));
 
 		centerText(gamevar.add.bitmapText(0, 380, 'carrier', 'collect these to lower the water.', 15));
 		testCoin1 = this.add.sprite(320, 370 + 50, 'square', 2);

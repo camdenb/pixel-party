@@ -43,8 +43,10 @@ MainState.Preloader.prototype = {
 		// this.load.setPreloadSprite(this.preloadBar, false);
 
 		gamevar.load.image('rect', 'assets/sprites/shapes/rect.png');
+		setBGRandomColor();
 		this.load.onFileComplete.add(function(){
 			percentText.setText(gamevar.load.progress + '%');
+			shakeText(percentText);
 		});
 		inputHandler.preload();
 

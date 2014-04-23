@@ -232,7 +232,9 @@ function setPaused(_bPaused, _bGameOver){
 				bul.body.velocity.y = 0;
 			}
 		});
-		emitter_trail.on = false;
+		if(emitter_trail != null){
+			emitter_trail.on = false;
+		}
 		coins.forEach(function(coin){
 			coin.trail.on = false;
 		});

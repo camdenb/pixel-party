@@ -81,7 +81,7 @@ MainState.Level.prototype = {
 		bullets = gamevar.add.group();
 		bullets.enableBody = true;
     	bullets.physicsBodyType = Phaser.Physics.ARCADE;
-    	bullets.createMultiple(100, 'square', 0, false);
+    	bullets.createMultiple(300, 'square', 0, false);
     	bullets.setAll('anchor.x', 0.5);
     	bullets.setAll('anchor.y', 0.5);
     	bullets.setAll('body.allowGravity', false);

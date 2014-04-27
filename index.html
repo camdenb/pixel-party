@@ -2,7 +2,7 @@
 <html lang="en"> 
 <head> 
 	<meta charset="UTF-8" />
-	<title>BULLET HELL THING</title>
+	<title>PIXEL PARTY</title>
 	<script type="text/javascript" src="js/phaser.min.js"></script>
     <script type="text/javascript" src="js/store.min.js"></script>
     <script type="text/javascript" src="js/tinycolor-min.js"></script>
@@ -33,7 +33,7 @@
 <script type="text/javascript">
 
 //change back to AUTO when done debugging
-var gamevar = new Phaser.Game(800, 600, Phaser.CANVAS);
+var gamevar = new Phaser.Game(800, 600, Phaser.AUTO, '', null, false, false);
 
 var player = new MainState.Player(gamevar);
 var level = new MainState.Level(gamevar);
@@ -50,6 +50,7 @@ gamevar.state.add('menu_main', MainState.Menus.Main);
 gamevar.state.add('menu_credits', MainState.Menus.Credits);
 gamevar.state.add('menu_options', MainState.Menus.Options);
 gamevar.state.add('menu_howto', MainState.Menus.HowTo);
+gamevar.state.add('menu_achievements', MainState.Menus.Achievements);
 gamevar.state.add('gameplay', MainState.Gameplay);
 
 gamevar.state.start('boot');

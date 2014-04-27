@@ -55,7 +55,7 @@ MainState.Preloader.prototype = {
 	},
 
 	create: function() {
-		this.stage.smoothed = false;
+		gamevar.stage.smoothed = false;
 		gamevar.state.start('menu_main');
 		
 	},
@@ -81,6 +81,8 @@ MainState.Gameplay.prototype = {
 	    player.create();
 	    overlay.create();
 
+	    gamevar.stage.smoothed = false;
+
 	},
 
 	update: function() {
@@ -94,7 +96,7 @@ MainState.Gameplay.prototype = {
 
 		// gamevar.debug.quadTree(gamevar.physics.arcade.quadTree);
 
-		// gamevar.debug.text("Difficulty: " + difficulty, 500, 100);
+		gamevar.debug.text("Difficulty: " + difficulty, 500, 100);
 		// gamevar.debug.text("dead?: " + lifeEmpty, 200, 100);
 		// gamevar.debug.soundInfo(currentSong, 20, 32);
 		// bullets.forEachAlive(function(bullet){gamevar.debug.geom(bullet.line);});
@@ -112,7 +114,7 @@ MainState.Gameplay.prototype = {
 
 	shutdown: function() {
 		gameObjects.destroy(true, true);
-		console.log('destroyed game stuff');
+		//console.log('destroyed game stuff');
 	}
 
 };

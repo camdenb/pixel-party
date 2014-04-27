@@ -6,6 +6,7 @@ MainState.Menus.Main = function(game){};
 MainState.Menus.Credits = function(game){};
 MainState.Menus.Options = function(game){};
 MainState.Menus.HowTo = function(game){};
+MainState.Menus.Achievements = function(game){};
 
 var buttonOffset = 10;
 var menuItemSpace = 60;
@@ -46,17 +47,34 @@ var testCoin2;
 
 var menuMusicPlaying = false;
 
+var achList = [];
+var achLookup = {};
+var achInitialized = false;
+var checkmark;
+var defaultAchievement_p = new Achievement('THIS IS A DEFAULT ACHIEVEMENT', 0, 'player', 1);
+var defaultAchievement_t = new Achievement('THIS IS A DEFAULT ACHIEVEMENT', 0, 'trail', 1);
+var selectedReward_player = defaultAchievement_p;
+var selectedReward_trail = defaultAchievement_t;
+var reward_playerPos;
+
+var reward_playerSprite;
+
 
 MainState.Menus.Main.prototype = {
 	//PIXEL PARTY
 
 	preload: function(){
 		this.load.image('title', 'assets/title.png');
-		this.load.image('trail', 'assets/sprites/shapes/4_white.png');
+		this.load.spritesheet('trail', 'assets/sprites/shapes/trail-ss.png', 8, 8);
+		this.load.image('check', 'assets/sprites/shapes/check.png');
 		this.load.image('bearsoap', 'assets/bearsoap_transparent.png');
 	},
 
 	create: function() {
+
+		gamevar.stage.smoothed = false;
+		gamevar.antialias = false;
+		//Phaser.Canvas.setSmoothingEnabled(gamevar.context, false);
 		
 		if(menuLifeMeter != null && menuLifeMeter.exists){
 				menuLifeMeter.destroy();
@@ -80,7 +98,6 @@ MainState.Menus.Main.prototype = {
 		if(!menuMusicPlaying){
 			music_menu.play();
 			menuMusicPlaying = true;
-			console.log('playing music!');
 		}
 
 		title = gamevar.add.image(0, 0, 'title');
@@ -100,7 +117,7 @@ MainState.Menus.Main.prototype = {
 		// emitter_trail.setAll('scale.x', 2);
 		// emitter_trail.setAll('scale.y', 2);
 		emitter_title.setAlpha(0.5, 0, 2000);
-		emitter_title.setScale(3, 1, 3, 1, 2000);
+		emitter_title.setScale(0.5, 0.2, 0.5, 0.2, 2000);
 		//emitter_trail.setAll('alpha', .6);
 		emitter_title.gravity = -100;
 		emitter_title.width = 15;
@@ -121,16 +138,23 @@ MainState.Menus.Main.prototype = {
 		title.events.onInputDown.add(titleShake, this);
 
 		this.stage.backgroundColor = '#aaaaaa';
-		console.log('main menu started');
 		sound_switch = this.add.audio('switch');
 		sound_click = this.add.audio('click');
 		//this.add.button(this.world.centerX - 64, 300, 'button_play', buttonPressed_play, this);
-		addMenus(['btn_play', 'play', 30, 'btn_howto', 'how to play', 30, 'btn_options', 'options', 30, 'btn_credits', 'credits', 30], 275);
+		addMenus(['btn_play', 'play', 30, 'btn_howto', 'how to play', 30, 'btn_options', 'options', 30, 'btn_credits', 'credits', 30 ,'btn_achievements', 'achievements', 30], 275);
 		nextScreen = 'gameplay';
 
 		advanceScreenKey = gamevar.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 		advanceScreenKey.onDown.add(advanceScreenCheck);
 		//gamevar.state.start('gameplay');
+
+		if(!achInitialized){
+			achInitialized = initAchievements();
+		}
+
+		console.log(reward_playerPos.toString());
+
+
 	},
 
 	update: function() {
@@ -276,13 +300,14 @@ MainState.Menus.HowTo.prototype = {
 		testBullet = this.add.sprite(350, 100 + 20, 'square', 0);
 
 		centerText(gamevar.add.bitmapText(0, 160, 'carrier', 'click to launch a bomb!', 15));
-		centerText(gamevar.add.bitmapText(0, 185, 'carrier', 'bombs kill all bullets on screen.', 15));
-		centerText(gamevar.add.bitmapText(0, 210, 'carrier', 'bombs take 10 seconds to recharge.', 15));
+		centerText(gamevar.add.bitmapText(0, 185, 'carrier', 'bombs kill all bullets on screen,', 15));
+		centerText(gamevar.add.bitmapText(0, 210, 'carrier', 'but subtract 300 from your score.', 15));
+		centerText(gamevar.add.bitmapText(0, 235, 'carrier', 'bombs take 10 seconds to recharge.', 15));
 
-		centerText(gamevar.add.bitmapText(0, 220 + 35, 'carrier', 'the water keeps rising as time goes on.', 15));
-		centerText(gamevar.add.bitmapText(0, 235 + 40, 'carrier', 'it\'s okay to touch,', 15));
-		centerText(gamevar.add.bitmapText(0, 250 + 45, 'carrier', 'but don\'t let it reach the top', 15));
-		centerText(gamevar.add.bitmapText(0, 265 + 50, 'carrier', 'or game over!', 15));
+		centerText(gamevar.add.bitmapText(0, 220 + 55, 'carrier', 'the water keeps rising as time goes on.', 15));
+		centerText(gamevar.add.bitmapText(0, 235 + 60, 'carrier', 'it\'s okay to touch,', 15));
+		centerText(gamevar.add.bitmapText(0, 250 + 65, 'carrier', 'but don\'t let it reach the top', 15));
+		centerText(gamevar.add.bitmapText(0, 265 + 70, 'carrier', 'or game over!', 15));
 
 		centerText(gamevar.add.bitmapText(0, 380, 'carrier', 'collect these to lower the water.', 15));
 		testCoin1 = this.add.sprite(320, 370 + 50, 'square', 2);
@@ -333,6 +358,246 @@ MainState.Menus.HowTo.prototype = {
 
 };
 
+MainState.Menus.Achievements.prototype = {
+
+	create: function() {
+
+		// optionsMenuArr = addMenus(['btn_volumeLevel_master', 'master volume:' + volumeLevel, 30, 'btn_volumeLevel_music', 'music volume:' + volumeLevel_music, 30, 'btn_graphicsLevel', 'graphics level:' + graphicsLevel, 30], 200);
+		
+		//centerText(this.add.bitmapText(100, 300, 'carrier', 'collect 300 coins      175/300', 15)).alpha = 0.5; 
+		addAchievementItems(100, 13, 30);
+
+		addBackButton();
+
+	},
+
+	update: function() {
+	}
+
+};
+
+function Achievement(text, id, total, rewardKey, rewardFrame, altTotal){
+	this.text = text;
+	this.id = id;
+	this.total = total;
+	this.altTotal = altTotal;
+	this.rewardKey = rewardKey;
+	this.rewardFrame = rewardFrame;
+
+	this.completed = false;
+	this.progress = 0;
+
+	this.linkedSprite;
+
+}
+
+function initAchievements(){
+
+	achArr = [
+				new Achievement('always complete', 7, 1, 'player', 3),
+				new Achievement('collect 10,000 bits', 1, 10000, 'player', 3),
+				new Achievement('collect 100 bits in first 60 sec', 4, 60, 'player', 2, 100),
+				20,
+				new Achievement('always complete trail', 8, 1, 'trail', 3),
+				new Achievement('survive 120 seconds w/ no bomb', 2, 120, 'trail', 3),
+				new Achievement('survive 300 seconds unscathed', 6, 300, 'trail', [1, 2, 3, 4, 5, 6, 7 ,8]),
+				20,
+				new Achievement('hit by 6,666 bullets', 3, 6666, 'player', 5),
+				new Achievement('die within 2 seconds...', 5, 2, 'player', 4, 1),
+				
+				];
+
+	for(var i = 0; i < achArr.length; i++){
+
+		newAch = achArr[i];
+		achList.push(newAch);
+
+		achLookup[achArr[i].id] = achArr[i];
+
+	}
+
+	reward_playerPos = new Phaser.Point(0, 0);
+	console.log('RESET PLAYER POS');
+	store.set('reward_playerPos', reward_playerPos);
+
+	setAchProgress(7, 1);
+	setAchProgress(8, 1);
+
+	return true;
+
+}
+
+function addAchievementItems(startHeight, achSize, spaceBetween){
+	/*
+	format for array:
+	text (ie collect 300 coins)
+	id (ie 21, used for tracking achv.)
+	total (ie 300 for the coins, assuming the ach. has a number. leave as 1 if not a number)
+	rewardKey (ie sprite_blue, used to choose the reward to give player)
+
+	ACTUALLY
+		an array of Achievement objects
+	*/
+
+	checkmark = gamevar.add.sprite(0, -100, 'check');
+	//
+
+	startHeight = startHeight || 0;
+	achSize = achSize || 20;
+
+	var text, id, total, rewardKey;
+
+	for(var i = 0; i < achList.length; i++){
+
+		if(typeof achList[i] === 'number'){
+			startHeight += achList[i];
+		} else {
+			newAch = achList[i];
+
+			text = newAch.text;
+			id = newAch.id;
+			total = (newAch.altTotal != null) ? newAch.altTotal : newAch.total;
+			rewardKey = newAch.rewardKey;
+			rewardFrame = newAch.rewardFrame;
+			progress = newAch.progress;
+			completed = newAch.completed;
+
+			if(newAch.completed){
+				textAlpha = 1;
+			} else {
+				textAlpha = 0.6;
+			}
+
+			alignText(gamevar.add.bitmapText(100, startHeight, 'carrier', text, achSize), true, 100).alpha = textAlpha; 
+			alignText(gamevar.add.bitmapText(100, startHeight, 'carrier', progress + '/' + total, achSize), false, 20).alpha = textAlpha; 
+
+			var newSpr;
+
+			if(completed){
+				if(rewardKey == 'player'){
+					newSpr = alignSprite(getSpriteByRewardID(rewardKey, rewardFrame), true, 50);
+					newSpr.y = startHeight - achSize / 2;
+					newSpr.scale.setTo(2, 2);
+				} else {
+					newEmit = alignSprite(addRewardEmitter(100, startHeight, [1, 2, 3, 4, 5, 6, 7 ,8]), true, 60);
+					newSpr = alignSprite(gamevar.add.sprite(newEmit.x, newEmit.y, 'player', 0), true, 50);
+					newSpr.y = startHeight - achSize / 2 - 10;
+					newSpr.scale.setTo(2, 2);
+					newSpr.alpha = 0;
+				}
+			} else {
+				newSpr = alignSprite(gamevar.add.sprite(100, startHeight, 'player', 6), true, 50);
+				newSpr.y = startHeight - achSize / 2;
+				newSpr.scale.setTo(2, 2);
+			}
+
+			newAch.linkedSprite = newSpr;
+			newAch.linkedSprite.inputEnabled = true;
+			newAch.linkedSprite.events.onInputDown.add(function(){
+				if(this.completed){
+					if(rewardKey === 'player'){
+						//selectReward(true, this.rewardFrame, this.linkedSprite.x, this.linkedSprite.y);
+					} else if(rewardKey === 'trail'){
+						//selectReward(false, this.rewardFrame, this.linkedSprite.x, this.linkedSprite.y)
+					}
+					
+				} else {
+					shakeText(this.linkedSprite, 2, 50, true);
+				}
+			}, newAch);
+			// if(gamevar.rnd.integerInRange(0, 1) == 1){
+			// 	newAch.linkedSprite.alpha = 0.5;
+			// }
+
+			startHeight += spaceBetween + achSize;
+		}
+	}
+
+
+
+}
+
+
+function isRewardPlayer(ach){
+	return ach.rewardKey == 'player';
+}
+
+
+
+function addRewardEmitter(x, y, framesArr){
+	emitter_trail = gamevar.add.emitter(x, y, 20);
+	emitter_trail.makeParticles('trail', framesArr);
+	// emitter_trail.setAll('scale.x', 2);
+	// emitter_trail.setAll('scale.y', 2);
+	emitter_trail.setAlpha(1, 0, 1000);
+	emitter_trail.setScale(2, 1, 2, 1, 1000);
+	//emitter_trail.setAll('alpha', .6);
+	emitter_trail.gravity = 0;
+	emitter_trail.width = 15;
+	emitter_trail.height = 15;
+	emitter_trail.particleDrag.setTo(20, 20);
+	emitter_trail.angularDrag = 200;
+	// emitter_trail.minParticleScale = 1;
+	// emitter_trail.maxParticleScale = 2;
+	emitter_trail.minParticleSpeed.setTo(-40, -40);
+	emitter_trail.maxParticleSpeed.setTo(40, 40);
+	emitter_trail.start(false, 1000, 100);
+	return emitter_trail;
+}
+
+function getSpriteByRewardID(rewardKey, rewardFrame){
+	newSprite = gamevar.add.sprite(0, 0, rewardKey, rewardFrame);
+	newSprite.name = rewardKey + '' + rewardFrame;
+	return newSprite;
+}
+
+function setAchProgress(id, progress){
+	achLookup[id].progress = progress;
+	verifyAchComplete(id);
+	return achLookup[id];
+}
+
+function addAchProgress(id, amount){
+	achLookup[id].progress += amount;
+	verifyAchComplete(id);
+	return achLookup[id];
+}
+
+function verifyAchComplete(id){
+
+	useAltTotal = (achLookup[id].altTotal != null);
+
+	if(useAltTotal){
+		if(getAchProgress(id) >= getAchAltTotal(id)){
+			setAchCompleted(id, true);
+		}
+	} else {
+		if(getAchProgress(id) >= getAchTotal(id)){
+			setAchCompleted(id, true);
+		}
+	}
+}
+
+function checkAchStatus(id){
+	return achLookup[id].completed;
+}
+
+function setAchCompleted(id, complete){
+	achLookup[id].completed = complete;
+}
+
+function getAchProgress(id){
+	return achLookup[id].progress;
+}
+
+function getAchTotal(id){
+	return achLookup[id].total;
+}
+
+function getAchAltTotal(id){
+	return achLookup[id].altTotal;
+}
+
 MainState.Menus.Options.prototype = {
 
 	create: function() {
@@ -361,6 +626,7 @@ function titleShake(){
 		emitter_title.start(true, 2000, 0, 20);
 	}
 }
+
 
 //buttonArr is array of keys for menus
 function addMenus(buttonArr, heightOffset) {
@@ -436,13 +702,10 @@ function buttonPressed(btn){
 			setPaused(false);
 			break;			
 		case 'btn_back':
-			console.log('parent: ' + parentScreen);
 			gamevar.state.start(parentScreen, true);
 			break;
 		case 'btn_mainmenu':
-			if(difficulty > store.get('maxDifficulty')){
-				store.set('maxDifficulty', difficulty);
-			}
+			onLeaveGameplay();
 			bgMusic.stop();
 			if(!music_menu.isPlaying){
 				music_menu.play();
@@ -477,6 +740,9 @@ function buttonPressed(btn){
 			break;
 		case 'btn_fullscreen':
 			setFullscreen(true);
+			break;
+		case 'btn_achievements':
+			gamevar.state.start('menu_achievements', true);
 			break;
 		default:
 	}

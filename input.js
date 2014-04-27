@@ -125,8 +125,31 @@ function setFullscreen(full){
 	}
 }
 
+function alignText(text, alignLeft, offset){
+	//true is left, false is right
+	offset = offset || 10;
+	if(alignLeft){
+		text.x = 0 + offset;
+	} else {
+		text.x = gamevar.width - getTextWidth(text) - offset;
+	}
+	return text;
+}
+
+function alignSprite(spr, alignLeft, offset){
+	//true is left, false is right
+	offset = offset || 10;
+	if(alignLeft){
+		spr.x = 0 + offset;
+	} else {
+		spr.x = gamevar.width - spr.width - offset;
+	}
+	return spr;
+}
+
 function centerText(text){
 	text.x = (gamevar.width / 2) - getTextWidth(text) / 2;
+	return text;
 }
 
 function windowPaused(){
@@ -228,7 +251,7 @@ function textParticleBurst(text){
 		// emitter_trail.setAll('scale.x', 2);
 		// emitter_trail.setAll('scale.y', 2);
 		emitter_text.setAlpha(0.5, 0, 1000);
-		emitter_text.setScale(3, 1, 3, 1, 1000);
+		emitter_text.setScale(2, 0.5, 2, 0.5, 1000);
 		//emitter_trail.setAll('alpha', .6);
 		emitter_text.gravity = 100;
 		emitter_text.width = 15;

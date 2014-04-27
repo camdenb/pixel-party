@@ -26,13 +26,17 @@ var pausedMask;
 var emitter_blood;
 var emitter_trail;
 
+var reward_playerFrame = 0;
+var reward_trailFrame = 0;
+
 var bMouseControl = true;
 var bPlayerDead = false;
+var bGameOver = false;
 
 MainState.Player.prototype = {
 
 	preload: function() {
-		gamevar.load.image('player', 'assets/sprites/shapes/32_light-blue.png');
+		gamevar.load.spritesheet('player', 'assets/sprites/shapes/player-ss.png', 16, 16);
 		gamevar.load.image('redmask', 'assets/sprites/red-mask.png');
 		gamevar.load.image('yellowmask', 'assets/sprites/yellow-mask.png');
 		gamevar.load.image('greenmask', 'assets/sprites/green-mask.png');
@@ -51,6 +55,7 @@ MainState.Player.prototype = {
 			store.set('hiscore', 0);
 		}
 
+		bGameOver = false;
 		bombSprite = gamevar.add.sprite(-200, 0, 'explosion');
 		//bombSprite.animations.add('explode', [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17], 10);
 		bombSprite.anchor.setTo(0.5, 0.5);
@@ -71,15 +76,15 @@ MainState.Player.prototype = {
 		if(graphicsLevel > 1){
 			//emitter
 			emitter_trail = gamevar.add.emitter(-100, 0, 100);
-			emitter_trail.makeParticles('trail', 0, 200);
+			emitter_trail.makeParticles('trail', reward_trailFrame, 200);
 			// emitter_trail.setAll('scale.x', 2);
 			// emitter_trail.setAll('scale.y', 2);
 			emitter_trail.setAlpha(1, 0, 1000);
-			emitter_trail.setScale(3, 1, 3, 1, 1000);
+			emitter_trail.setScale(2, 0.5, 2, 0.5, 1000);
 			//emitter_trail.setAll('alpha', .6);
 			emitter_trail.gravity = 0;
-			emitter_trail.width = 15;
-			emitter_trail.height = 15;
+			emitter_trail.width = 13;
+			emitter_trail.height = 13;
 			emitter_trail.particleDrag.setTo(20, 20);
 			emitter_trail.angularDrag = 200;
 			// emitter_trail.minParticleScale = 1;
@@ -91,8 +96,9 @@ MainState.Player.prototype = {
 		}
 
 
-		playerSprite = gamevar.add.sprite(100, 100, 'player');
-		playerSprite.scale.setTo(.75, .75);
+		playerSprite = gamevar.add.sprite(100, 100, 'player', reward_playerFrame);
+		playerSprite.smoothed = false;
+		playerSprite.scale.setTo(1.6, 1.6);
 		playerSprite.anchor.setTo(0.5, 0.5);
 
 		gamevar.physics.enable([playerSprite], Phaser.Physics.ARCADE, true);
@@ -167,7 +173,6 @@ function resetCoinsAndBullets(){
 
 function resetDifficulty(){
 
-	console.log(difficulty);
 	maxDirectionRange = 0;
 	difficulty = 0;
 
@@ -191,8 +196,13 @@ function setPaused(_bPaused, _bGameOver){
 	var firstButtonAction;
 
 	if(_bGameOver){
+		bGameOver = _bGameOver;
 		if(difficulty > store.get('maxDifficulty')){
 			store.set('maxDifficulty', difficulty);
+		}
+		if(difficulty <= getAchTotal(5)){
+			setAchProgress(5, 1);
+			console.log(achLookup[5]);
 		}
 		text_paused.setText('game over');
 		firstButton = 'restart';
@@ -221,7 +231,6 @@ function setPaused(_bPaused, _bGameOver){
 
 		pausedMenuObjects = addMenus([firstButtonAction, firstButton, 40, 'btn_mainmenu', 'main menu', 40], 300);
 
-		console.log('paused');
 		timer_bombRecharge.pause();
 		timer_difficulty.pause();
 		timer_scorePerSec.pause();
@@ -261,7 +270,6 @@ function setPaused(_bPaused, _bGameOver){
 		text_score_gameover.destroy();
 		text_hiscore_gameover.destroy();
 
-		console.log('unpaused');
 		timer_shake.resume();
 		var newBombTimer = 0;
 		timer_bombRecharge.resume();
@@ -331,6 +339,11 @@ function flashBomb(){
 function launchBomb(){
 
 	if(hasBomb && !bPaused){
+		// if(difficulty > getAchProgress(2)){
+		// 	setAchProgress(2, difficulty);
+		// }
+		addScore(-300);
+		bUsedBombThisRound = true;
 		lastBombTime = gamevar.time.now;
 		shakeScreen(20, 100, true);
 		flashBomb();
@@ -358,11 +371,13 @@ function launchBomb(){
 
 function playerHitByBullet(_player, _bullet){
 	if(!bPlayerDead){
+		bPlayerHitThisRound = true;
 		shakeScreen(10, 100, true);
 		flashHurt();
 		_bullet.kill();
 		//addScore(-50);
 		addToLifeMeter(-100);
+		addAchProgress(3, 1);
 	}
 }
 
@@ -377,6 +392,13 @@ function playerCollectedCoin(_player, _coin){
 	addCoinValue(_coin.timeValue);
 	addScore(75);
 	addToLifeMeter(30);
+	// console.log(achList);
+	coinsCollectedThisRound++;
+	lastCoinCollectedTime = gamevar.time.now;
+	if(difficulty <= getAchAltTotal(4) && !checkAchStatus(4) && coinsCollectedThisRound > getAchProgress(4)){
+		setAchProgress(4, coinsCollectedThisRound);
+	}
+	addAchProgress(1, 1);
 }
 
 function addCoinValue(amount){

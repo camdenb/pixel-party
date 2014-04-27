@@ -45,7 +45,11 @@ var bDeathPause = false;
 
 var bgMusic;
 
-
+//ACHIEVEMENT BOOLEANS!
+var bUsedBombThisRound = false;
+var coinsCollectedThisRound = 0;
+var lastCoinCollectedTime = 0;
+var bPlayerHitThisRound = false;
 
 var graphicsLevel = 2;
 
@@ -65,6 +69,8 @@ MainState.Level.prototype = {
 		// console.log(Phaser.Color.RGBtoHexstring(Phaser.Color.getRandomColor(0, 255)));
 
 		// gamevar.world.setBounds(-30, -30, 830, 630);
+
+
 		music_menu.stop();
 		gamevar.sound.stopAll();
 		menuMusicPlaying = false;
@@ -75,7 +81,7 @@ MainState.Level.prototype = {
 		setBGRandomColor(175);
 		//gamevar.physics.arcade.gravity.y = 1700;
 
-
+		resetPerRoundAchievementValues();
 
 		//bullets
 		bullets = gamevar.add.group();
@@ -136,7 +142,7 @@ MainState.Level.prototype = {
 				// emitter_trail.setAll('scale.x', 2);
 				// emitter_trail.setAll('scale.y', 2);
 				coin.trail.setAlpha(.8, 0, 2000);
-				coin.trail.setScale(4, 1, 4, 1, 2000);
+				coin.trail.setScale(2, 0.5, 2, 0.5, 2000);
 				//emitter_trail.setAll('alpha', .6);
 				coin.trail.gravity = 0;
 				coin.trail.width = 10;
@@ -218,14 +224,26 @@ MainState.Level.prototype = {
 
 };
 
-// function cycleCoinFrame(coin){
-// 	if(coin.frame + 1 > 9){
-// 		nextFrame = 2;
-// 	} else if(coin.frame + 1 != 0){
-// 		nextFrame = coin.frame + 1;
-// 	}
-// 	coin.frame = nextFrame;
-// }
+
+function resetPerRoundAchievementValues(){
+	lastCoinCollectedTime = 0;
+	bUsedBombThisRound = false;
+	coinsCollectedThisRound = 0;
+	bPlayerHitThisRound = false;
+}
+
+function onLeaveGameplay(){
+	if(difficulty > store.get('maxDifficulty')){
+		store.set('maxDifficulty', difficulty);
+	}
+	checkForAchievements();
+}
+
+function checkForAchievements(){
+	if(!bUsedBombThisRound && difficulty > getAchProgress(2)){
+		setAchProgress(2, difficulty);
+	}
+}
 
 function addToLifeMeter(amount){
 	lifeMeter.y += amount;
@@ -246,6 +264,9 @@ function setBGRandomColor(brightness){
 function increaseDifficulty(){
 	difficulty++;
 	updateDifficulty();
+	if(!bPlayerHitThisRound && difficulty > getAchProgress(6)){
+		setAchProgress(6, difficulty);
+	}
 }
 
 function updateDifficulty(){

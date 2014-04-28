@@ -272,7 +272,7 @@ function textParticleBurst(text){
 }
 
 function graphicsAdvance(){
-	if(graphicsLevel < 3){
+	if(graphicsLevel < 2){
 		graphicsLevel++;
 	} else {
 		graphicsLevel = 1;

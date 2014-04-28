@@ -55,6 +55,8 @@ var defaultAchievement_p = new Achievement('THIS IS A DEFAULT ACHIEVEMENT', 0, '
 var defaultAchievement_t = new Achievement('THIS IS A DEFAULT ACHIEVEMENT', 0, 'trail', 1);
 var selectedReward_player = defaultAchievement_p;
 var selectedReward_trail = defaultAchievement_t;
+var maxID = 0;
+
 var reward_playerPos;
 
 var reward_playerSprite;
@@ -152,7 +154,6 @@ MainState.Menus.Main.prototype = {
 			achInitialized = initAchievements();
 		}
 
-		console.log(reward_playerPos.toString());
 
 
 	},
@@ -388,6 +389,8 @@ function Achievement(text, id, total, rewardKey, rewardFrame, altTotal){
 	this.progress = 0;
 
 	this.linkedSprite;
+	this.linkedCheckmark;
+	this.selected = false;
 
 }
 
@@ -398,7 +401,7 @@ function initAchievements(){
 				new Achievement('collect 10,000 bits', 1, 10000, 'player', 3),
 				new Achievement('collect 100 bits in first 60 sec', 4, 60, 'player', 2, 100),
 				20,
-				new Achievement('always complete trail', 8, 1, 'trail', 3),
+				new Achievement('always complete trail', 8, 1, 'trail', [1, 2, 3, 4, 5, 6, 7 ,8]),
 				new Achievement('survive 120 seconds w/ no bomb', 2, 120, 'trail', 3),
 				new Achievement('survive 300 seconds unscathed', 6, 300, 'trail', [1, 2, 3, 4, 5, 6, 7 ,8]),
 				20,
@@ -406,6 +409,8 @@ function initAchievements(){
 				new Achievement('die within 2 seconds...', 5, 2, 'player', 4, 1),
 				
 				];
+
+	maxID = 8; ////REMEMBER TO UPDATE
 
 	for(var i = 0; i < achArr.length; i++){
 
@@ -416,15 +421,30 @@ function initAchievements(){
 
 	}
 
-	reward_playerPos = new Phaser.Point(0, 0);
-	console.log('RESET PLAYER POS');
-	store.set('reward_playerPos', reward_playerPos);
+	cachedAchList = [];
+	for(var i = 0; i <= maxID * 2 + 1; i += 2){
+		cachedAchList.push(store.get('achListID_' + i));
+		cachedAchList.push(store.get('achListProgress_' + (i + 1)));
+	}
 
-	setAchProgress(7, 1);
-	setAchProgress(8, 1);
+	updateAchValuesFromStorage(cachedAchList);
+
+
+	// setAchProgress(7, 1);
+	// setAchProgress(8, 1);
 
 	return true;
 
+}
+
+function updateAchValuesFromStorage(cachedList){
+	for(var i = 2; i <= maxID * 2 + 1; i += 2){
+		id = cachedList[i];
+		prog = cachedList[i + 1];
+		//console.log(i + " " + id + " " + prog);
+		correspondingAch = achLookup[id];
+		correspondingAch.progress = prog;
+	}
 }
 
 function addAchievementItems(startHeight, achSize, spaceBetween){
@@ -460,7 +480,10 @@ function addAchievementItems(startHeight, achSize, spaceBetween){
 			rewardKey = newAch.rewardKey;
 			rewardFrame = newAch.rewardFrame;
 			progress = newAch.progress;
-			completed = newAch.completed;
+
+			if(newAch.progress >= total){
+				newAch.completed = true;
+			}
 
 			if(newAch.completed){
 				textAlpha = 1;
@@ -473,13 +496,13 @@ function addAchievementItems(startHeight, achSize, spaceBetween){
 
 			var newSpr;
 
-			if(completed){
-				if(rewardKey == 'player'){
+			if(newAch.completed){
+				if(rewardKey === 'player'){
 					newSpr = alignSprite(getSpriteByRewardID(rewardKey, rewardFrame), true, 50);
 					newSpr.y = startHeight - achSize / 2;
 					newSpr.scale.setTo(2, 2);
 				} else {
-					newEmit = alignSprite(addRewardEmitter(100, startHeight, [1, 2, 3, 4, 5, 6, 7 ,8]), true, 60);
+					newEmit = alignSprite(addRewardEmitter(100, startHeight, newAch.rewardFrame), true, 60);
 					newSpr = alignSprite(gamevar.add.sprite(newEmit.x, newEmit.y, 'player', 0), true, 50);
 					newSpr.y = startHeight - achSize / 2 - 10;
 					newSpr.scale.setTo(2, 2);
@@ -493,30 +516,76 @@ function addAchievementItems(startHeight, achSize, spaceBetween){
 
 			newAch.linkedSprite = newSpr;
 			newAch.linkedSprite.inputEnabled = true;
+			newAch.linkedCheckmark = gamevar.add.sprite(newSpr.x - 20, newSpr.y, 'check');
 			newAch.linkedSprite.events.onInputDown.add(function(){
 				if(this.completed){
-					if(rewardKey === 'player'){
-						//selectReward(true, this.rewardFrame, this.linkedSprite.x, this.linkedSprite.y);
-					} else if(rewardKey === 'trail'){
-						//selectReward(false, this.rewardFrame, this.linkedSprite.x, this.linkedSprite.y)
+					if(this.rewardKey === 'player'){
+						selectReward(true, this);
+					} else if(this.rewardKey === 'trail'){
+						selectReward(false, this);
 					}
 					
 				} else {
 					shakeText(this.linkedSprite, 2, 50, true);
 				}
 			}, newAch);
-			// if(gamevar.rnd.integerInRange(0, 1) == 1){
-			// 	newAch.linkedSprite.alpha = 0.5;
-			// }
 
 			startHeight += spaceBetween + achSize;
 		}
 	}
 
-
+	refreshCheckmarks();
+	saveAchValues();
 
 }
 
+function refreshCheckmarks(){
+	achList.forEach(function(ach){
+		if(typeof ach != 'number'){
+			setCheckmarkVisibleOnAchIfSelected(ach);
+		}
+	});
+}
+
+function saveAchValues(){
+
+	for(var i = 2; i <= maxID * 2 + 1; i += 2){
+		id = (i / 2);
+		// console.log(id);
+		store.set('achListID_' + i, id);
+		store.set('achListProgress_' + (i + 1), achLookup[id].progress);
+	}
+}
+
+function setCheckmarkVisibleOnAchIfSelected(ach){
+	if(ach.selected){
+		ach.linkedCheckmark.x = ach.linkedSprite.x - 20;
+	} else {
+		ach.linkedCheckmark.x = -100;
+	}
+}
+
+function selectReward(bPlayer, ach){
+	if(bPlayer){
+		if(reward_playerFrame != ach.rewardFrame){
+			ach.selected = true;
+			reward_playerFrame = ach.rewardFrame;
+		} else {
+			ach.selected = false;
+			reward_playerFrame = 0;
+		}
+	} else {
+		if(reward_trailFrame != ach.rewardFrame){
+			ach.selected = true;
+			reward_trailFrame = ach.rewardFrame;
+		} else {
+			ach.selected = false;
+			reward_trailFrame = 0;
+		}
+	}
+	refreshCheckmarks();
+	saveAchValues();
+}
 
 function isRewardPlayer(ach){
 	return ach.rewardKey == 'player';

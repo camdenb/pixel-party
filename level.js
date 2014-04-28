@@ -237,6 +237,7 @@ function onLeaveGameplay(){
 		store.set('maxDifficulty', difficulty);
 	}
 	checkForAchievements();
+	console.log(bUsedBombThisRound);
 }
 
 function checkForAchievements(){

@@ -23,6 +23,7 @@ var text_hiscore_gameover;
 var text_score_center;
 
 var text_alert;
+var text_alert_ach;
 
 var textHeightOffset = 200;
 
@@ -62,6 +63,9 @@ MainState.Input.prototype = {
 
 		text_alert = gamevar.add.bitmapText(0, -100, 'carrier', '', 30);
 		text_alert.alpha = 0;
+
+		text_alert_ach = gamevar.add.bitmapText(0, -100, 'carrier', '', 30);
+		text_alert_ach.alpha = 0;
 
 		text_header_score = gamevar.add.bitmapText(200, textHeightOffset, 'carrier', 'Score', 40);
 		text_score = gamevar.add.bitmapText(200, textHeightOffset + 50, 'carrier', score_value + '', 40);
@@ -180,11 +184,18 @@ function bindKeys(){
 	}
 }
 
-function textAlert(text, y){
-	text_alert.setText(text);
-	text_alert.y = y;
-	centerText(text_alert);
-	gamevar.add.tween(text_alert).to( { alpha: .4}, 100, Phaser.Easing.Linear.None, true, 0, 0, false).to( { alpha: 0}, 1500, Phaser.Easing.Linear.None, true, 1500, 0, false);
+function textAlert(text, y, bAch){
+	if(bAch){
+		text_alert_ach.setText(text);
+		text_alert_ach.y = y;
+		centerText(text_alert_ach);
+		gamevar.add.tween(text_alert_ach).to( { alpha: .4}, 100, Phaser.Easing.Linear.None, true, 0, 0, false).to( { alpha: 0}, 1500, Phaser.Easing.Linear.None, true, 1500, 0, false);
+	} else {
+		text_alert.setText(text);
+		text_alert.y = y;
+		centerText(text_alert);
+		gamevar.add.tween(text_alert).to( { alpha: .4}, 100, Phaser.Easing.Linear.None, true, 0, 0, false).to( { alpha: 0}, 1500, Phaser.Easing.Linear.None, true, 1500, 0, false);
+	}
 }
 
 function flashText(text, bStayHighlighted, finalAlpha, endAlpha){

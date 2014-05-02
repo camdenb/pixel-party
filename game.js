@@ -83,6 +83,8 @@ MainState.Gameplay.prototype = {
 
 	    gamevar.stage.smoothed = false;
 
+	    bEnteredGameplayBefore = true;
+
 	},
 
 	update: function() {
@@ -97,6 +99,8 @@ MainState.Gameplay.prototype = {
 		// gamevar.debug.quadTree(gamevar.physics.arcade.quadTree);
 
 		gamevar.debug.text("Difficulty: " + difficulty, 500, 100);
+		gamevar.debug.text("coins this round: " + coinsCollectedThisRound, 200, 100);
+		
 		// gamevar.debug.text("dead?: " + lifeEmpty, 200, 100);
 		// gamevar.debug.soundInfo(currentSong, 20, 32);
 		// bullets.forEachAlive(function(bullet){gamevar.debug.geom(bullet.line);});
@@ -109,7 +113,7 @@ MainState.Gameplay.prototype = {
 	    //game.debug.text("health:" + playerHealth, playerSprite.x, playerSprite.y - 10);
 
 	    gamevar.time.advancedTiming = true;
-	    // gamevar.debug.text("fps: " + gamevar.time.fps, 600, 32);
+	    gamevar.debug.text("fps: " + gamevar.time.fps, 600, 32);
 	},
 
 	shutdown: function() {

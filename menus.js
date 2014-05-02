@@ -51,11 +51,9 @@ var achList = [];
 var achLookup = {};
 var achInitialized = false;
 var checkmark;
-var defaultAchievement_p = new Achievement('THIS IS A DEFAULT ACHIEVEMENT', 0, 'player', 1);
-var defaultAchievement_t = new Achievement('THIS IS A DEFAULT ACHIEVEMENT', 0, 'trail', 1);
-var selectedReward_player = defaultAchievement_p;
-var selectedReward_trail = defaultAchievement_t;
 var maxID = 0;
+var selectedAch_trail;
+var selectedAch_player;
 
 var reward_playerPos;
 
@@ -366,7 +364,7 @@ MainState.Menus.Achievements.prototype = {
 		// optionsMenuArr = addMenus(['btn_volumeLevel_master', 'master volume:' + volumeLevel, 30, 'btn_volumeLevel_music', 'music volume:' + volumeLevel_music, 30, 'btn_graphicsLevel', 'graphics level:' + graphicsLevel, 30], 200);
 		
 		//centerText(this.add.bitmapText(100, 300, 'carrier', 'collect 300 coins      175/300', 15)).alpha = 0.5; 
-		addAchievementItems(100, 13, 30);
+		addAchievementItems(60, 11, 24);
 
 		addBackButton();
 
@@ -391,21 +389,24 @@ function Achievement(text, id, total, rewardKey, rewardFrame, altTotal){
 	this.linkedSprite;
 	this.linkedCheckmark;
 	this.selected = false;
+	this.timeCompleted = 0;
 
 }
 
 function initAchievements(){
 
 	achArr = [
-				new Achievement('always complete', 7, 1, 'player', 3),
-				new Achievement('collect 10,000 bits', 1, 10000, 'player', 3),
-				new Achievement('collect 100 bits in first 60 sec', 4, 60, 'player', 2, 100),
+				// new Achievement('always complete', 7, 1, 'player', 3),
+				new Achievement('collect 5,000 bits', 1, 5000, 'player', 3),
+				new Achievement('collect 15 bits in first 5 sec', 8, 5, 'player', 1, 15),
+				new Achievement('collect 70 bits in first 30 sec', 4, 30, 'player', 7, 70),
 				20,
-				new Achievement('always complete trail', 8, 1, 'trail', [1, 2, 3, 4, 5, 6, 7 ,8]),
+				// new Achievement('always complete trail', 8, 1, 'trail', [1, 2, 3, 4, 5, 6, 7 ,8]),
 				new Achievement('survive 120 seconds w/ no bomb', 2, 120, 'trail', 3),
-				new Achievement('survive 300 seconds unscathed', 6, 300, 'trail', [1, 2, 3, 4, 5, 6, 7 ,8]),
+				new Achievement('survive 200 seconds unscathed', 6, 200, 'trail', [1, 2, 3, 4, 5, 6, 7 ,8]),
+				new Achievement('survive 60 secs w/ water above 50%', 7, .5, 'trail', 5, 60),
 				20,
-				new Achievement('hit by 6,666 bullets', 3, 6666, 'player', 5),
+				new Achievement('hit by 666 bullets', 3, 666, 'player', 5),
 				new Achievement('die within 2 seconds...', 5, 2, 'player', 4, 1),
 				
 				];
@@ -429,9 +430,12 @@ function initAchievements(){
 
 	updateAchValuesFromStorage(cachedAchList);
 
-
+	setAllAchievementsUnlocked(true);
+	// setAllAchProgress(0);
 	// setAchProgress(7, 1);
 	// setAchProgress(8, 1);
+
+	refreshAch();
 
 	return true;
 
@@ -491,32 +495,32 @@ function addAchievementItems(startHeight, achSize, spaceBetween){
 				textAlpha = 0.6;
 			}
 
-			alignText(gamevar.add.bitmapText(100, startHeight, 'carrier', text, achSize), true, 100).alpha = textAlpha; 
+			alignText(gamevar.add.bitmapText(100, startHeight, 'carrier', text, achSize), true, 75).alpha = textAlpha; 
 			alignText(gamevar.add.bitmapText(100, startHeight, 'carrier', progress + '/' + total, achSize), false, 20).alpha = textAlpha; 
 
 			var newSpr;
 
 			if(newAch.completed){
 				if(rewardKey === 'player'){
-					newSpr = alignSprite(getSpriteByRewardID(rewardKey, rewardFrame), true, 50);
-					newSpr.y = startHeight - achSize / 2;
+					newSpr = alignSprite(getSpriteByRewardID(rewardKey, rewardFrame), true, 25);
+					newSpr.y = startHeight - achSize / .9;
 					newSpr.scale.setTo(2, 2);
 				} else {
-					newEmit = alignSprite(addRewardEmitter(100, startHeight, newAch.rewardFrame), true, 60);
-					newSpr = alignSprite(gamevar.add.sprite(newEmit.x, newEmit.y, 'player', 0), true, 50);
-					newSpr.y = startHeight - achSize / 2 - 10;
+					newEmit = alignSprite(addRewardEmitter(100, startHeight, newAch.rewardFrame), true, 35);
+					newSpr = alignSprite(gamevar.add.sprite(newEmit.x, newEmit.y, 'player', 0), true, 25);
+					newSpr.y = startHeight - achSize / .9;
 					newSpr.scale.setTo(2, 2);
 					newSpr.alpha = 0;
 				}
 			} else {
-				newSpr = alignSprite(gamevar.add.sprite(100, startHeight, 'player', 6), true, 50);
-				newSpr.y = startHeight - achSize / 2;
+				newSpr = alignSprite(gamevar.add.sprite(100, startHeight, 'player', 6), true, 25);
+				newSpr.y = startHeight - achSize / .9;
 				newSpr.scale.setTo(2, 2);
 			}
 
 			newAch.linkedSprite = newSpr;
 			newAch.linkedSprite.inputEnabled = true;
-			newAch.linkedCheckmark = gamevar.add.sprite(newSpr.x - 20, newSpr.y, 'check');
+			newAch.linkedCheckmark = gamevar.add.sprite(newSpr.x - 20, newSpr.y + 8, 'check');
 			newAch.linkedSprite.events.onInputDown.add(function(){
 				if(this.completed){
 					if(this.rewardKey === 'player'){
@@ -526,7 +530,7 @@ function addAchievementItems(startHeight, achSize, spaceBetween){
 					}
 					
 				} else {
-					shakeText(this.linkedSprite, 2, 50, true);
+					shakeText(this.linkedSprite, 2, 20, true);
 				}
 			}, newAch);
 
@@ -537,6 +541,29 @@ function addAchievementItems(startHeight, achSize, spaceBetween){
 	refreshCheckmarks();
 	saveAchValues();
 
+}
+
+function setAllAchievementsUnlocked(bUnlock){
+	for(var i = 0; i < achList.length; i++){
+		if(typeof achList[i] != 'number')
+			achList[i].completed = bUnlock;
+	}
+}
+
+function refreshAch(){
+	for(var i = 0; i < achList.length; i++){
+		if(typeof achList[i] != 'number')
+			verifyAchComplete(achList[i].id);
+	}
+	// console.log(achList);
+}
+
+function setAllAchProgress(value){
+	for(var i = 0; i < achList.length; i++){
+		if(typeof achList[i] != 'number')
+			achList[i].progress = value;
+	}
+	refreshAch();
 }
 
 function refreshCheckmarks(){
@@ -565,22 +592,48 @@ function setCheckmarkVisibleOnAchIfSelected(ach){
 	}
 }
 
-function selectReward(bPlayer, ach){
+function setAchSelected(bPlayer, ach, bSelected){
 	if(bPlayer){
-		if(reward_playerFrame != ach.rewardFrame){
-			ach.selected = true;
+		if(bSelected){
+			
+			if(selectedAch_player != null)
+				selectedAch_player.selected = false;
+
+			selectedAch_player = ach;
 			reward_playerFrame = ach.rewardFrame;
+			ach.selected = true;
 		} else {
 			ach.selected = false;
 			reward_playerFrame = 0;
 		}
 	} else {
-		if(reward_trailFrame != ach.rewardFrame){
-			ach.selected = true;
+		if(bSelected){
+			
+			if(selectedAch_trail != null)
+				selectedAch_trail.selected = false;
+
+			selectedAch_trail = ach;
 			reward_trailFrame = ach.rewardFrame;
-		} else {
+			ach.selected = true;
+		}  else {
 			ach.selected = false;
 			reward_trailFrame = 0;
+		}
+	}
+}
+
+function selectReward(bPlayer, ach){
+	if(bPlayer){
+		if(reward_playerFrame != ach.rewardFrame){
+			setAchSelected(true, ach, true);
+		} else {
+			setAchSelected(true, ach, false);
+		}
+	} else {
+		if(reward_trailFrame != ach.rewardFrame){
+			setAchSelected(false, ach, true);
+		} else {
+			setAchSelected(false, ach, false);
 		}
 	}
 	refreshCheckmarks();
@@ -651,8 +704,24 @@ function checkAchStatus(id){
 	return achLookup[id].completed;
 }
 
+function getAchTimeCompleted(id){
+	return achLookup[id].timeUnlocked;
+}
+
+function checkIfAchRecentlyCompleted(id, timeAgo){
+	return (gamevar.time.now - getAchTimeCompleted(id) > timeAgo);
+}
+
 function setAchCompleted(id, complete){
+	if(bEnteredGameplayBefore && !achLookup[id].completed){
+		alertAchComplete(id);
+		achLookup[id].timeCompleted = gamevar.time.now;
+	}
 	achLookup[id].completed = complete;
+}
+
+function alertAchComplete(id){
+	textAlert('achievement unlocked', gamevar.height - 90, true);
 }
 
 function getAchProgress(id){

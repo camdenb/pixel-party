@@ -32,6 +32,8 @@ var bOnlyNormalBullets = false;
 var highestDifficulty = 0;
 var difficulty = 0;
 var maxDirectionRange = 0;
+var timeToIncreaseDifficulty = 30;
+var difficultyStage = 0;
 
 var coins;
 var coin;
@@ -50,6 +52,7 @@ var bUsedBombThisRound = false;
 var coinsCollectedThisRound = 0;
 var lastCoinCollectedTime = 0;
 var bPlayerHitThisRound = false;
+var waterLevelAboveThresholdTime = 0;
 
 var graphicsLevel = 2;
 
@@ -57,6 +60,7 @@ MainState.Level.prototype = {
 
 	preload: function() {
 		gamevar.load.spritesheet('square', 'assets/sprites/shapes/16_ss2.png', 16, 16);
+		gamevar.load.spritesheet('bullet', 'assets/sprites/shapes/bullet.png', 16, 16);
 		gamevar.load.audio('stutter', 'assets/sound/music/stutter.mp3');
 		gamevar.load.audio('switch', 'assets/sound/ui/switch30.ogg');
 		gamevar.load.audio('click', 'assets/sound/ui/switch32.ogg');
@@ -87,7 +91,7 @@ MainState.Level.prototype = {
 		bullets = gamevar.add.group();
 		bullets.enableBody = true;
     	bullets.physicsBodyType = Phaser.Physics.ARCADE;
-    	bullets.createMultiple(300, 'square', 0, false);
+    	bullets.createMultiple(300, 'bullet', 0, false);
     	bullets.setAll('anchor.x', 0.5);
     	bullets.setAll('anchor.y', 0.5);
     	bullets.setAll('body.allowGravity', false);
@@ -230,6 +234,7 @@ function resetPerRoundAchievementValues(){
 	bUsedBombThisRound = false;
 	coinsCollectedThisRound = 0;
 	bPlayerHitThisRound = false;
+	waterLevelAboveThresholdTime = 0;
 }
 
 function onLeaveGameplay(){
@@ -237,7 +242,7 @@ function onLeaveGameplay(){
 		store.set('maxDifficulty', difficulty);
 	}
 	checkForAchievements();
-	console.log(bUsedBombThisRound);
+	// console.log(bUsedBombThisRound);
 }
 
 function checkForAchievements(){
@@ -265,22 +270,30 @@ function setBGRandomColor(brightness){
 function increaseDifficulty(){
 	difficulty++;
 	updateDifficulty();
+
 	if(!bPlayerHitThisRound && difficulty > getAchProgress(6)){
 		setAchProgress(6, difficulty);
+	}
+	if(lifeMeter.y <= getAchTotal(7) * gamevar.height){
+		waterLevelAboveThresholdTime++;
+		if(waterLevelAboveThresholdTime > getAchProgress(7)){
+			setAchProgress(7, waterLevelAboveThresholdTime);
+		}
+	} else {
+		waterLevelAboveThresholdTime = 0;
 	}
 }
 
 function updateDifficulty(){
-	if(Math.floor(difficulty / 50) < 5){
-		var oldMaxDir = maxDirectionRange;
-		maxDirectionRange = Math.floor(difficulty / 50);
-		if(maxDirectionRange - oldMaxDir != 0){
-			setBGRandomColor(150);
-			textAlert('difficulty increase!', 100);
-		}
-
-	} else {
+	if(maxDirectionRange > 4){
 		maxDirectionRange = 4;
+	} else {
+		maxDirectionRange = difficultyStage;
+	}
+	if(Math.floor(difficulty / timeToIncreaseDifficulty) > difficultyStage){
+		setBGRandomColor(150);
+		textAlert('difficulty increase!', 100, false);
+		difficultyStage++;
 	}
 	//console.log(difficultyAdditions[currentLevel][currentEvent]);
 	var difficultyToSubtract = (difficulty / 2 > CONST_bulletSpawnInterval + 10) ? 10 : CONST_bulletSpawnInterval - (difficulty / 2);
@@ -302,7 +315,7 @@ function spawnBullet(){
 	} else if (bOnlyNormalBullets){
 		bullet.random = false;
 		bullet.frame = 0;
-	} else if(difficulty > 200 && gamevar.rnd.integerInRange(0, 3) == 0){
+	} else if(difficultyStage > 5 && gamevar.rnd.integerInRange(0, 3) == 0){
 		randomPoint = new Phaser.Point(gamevar.rnd.integerInRange(0, gamevar.width), gamevar.rnd.integerInRange(0, gamevar.height));
 		bullet.random = true;
 		bullet.frame = 0;
@@ -347,6 +360,11 @@ function spawnBullet(){
 	}
 
 	bullet.vertical = bVertical;
+	tempBulletVelocity = bulletVelocity;
+
+	if(difficultyStage > 6 && gamevar.rnd.integerInRange(0, 5) == 0){
+		tempBulletVelocity = bulletVelocity + gamevar.rnd.integerInRange(-50, 250);
+	}
 
 	if(bVertical){
 		boundsMin = stageOffset;
@@ -355,10 +373,10 @@ function spawnBullet(){
 		if(bullet.random){
 			var targetVector = new Phaser.Point(randomPoint.x - bullet.x, randomPoint.y - bullet.y);
 			targetVector.normalize();
-			targetVector.multiply(bulletVelocity_random, bulletVelocity_random);
+			targetVector.multiply(tempBulletVelocity, tempBulletVelocity);
 			bullet.body.velocity = targetVector;
 		} else {
-			bullet.body.velocity.x = (direction == 1) ? -bulletVelocity : bulletVelocity;
+			bullet.body.velocity.x = (direction == 1) ? -tempBulletVelocity : tempBulletVelocity;
 		}
 	} else {
 		boundsMin = stageOffset;
@@ -367,12 +385,31 @@ function spawnBullet(){
 		if(bullet.random){
 			var targetVector = new Phaser.Point(randomPoint.x - bullet.x, randomPoint.y - bullet.y);
 			targetVector.normalize();
-			targetVector.multiply(bulletVelocity_random, bulletVelocity_random);
+			targetVector.multiply(tempBulletVelocity, tempBulletVelocity);
 			bullet.body.velocity = targetVector;
 		} else {
-			bullet.body.velocity.y = (direction == 2) ? -bulletVelocity : bulletVelocity;
+			bullet.body.velocity.y = (direction == 2) ? -tempBulletVelocity : tempBulletVelocity;
 		}
 	}
+
+	if(difficultyStage > 5 && gamevar.rnd.integerInRange(0, 5) == 0){
+		size = gamevar.rnd.integerInRange(1.8, 2.2);
+		bullet.scale.setTo(size, size);
+	}
+
+	if(difficultyStage > 7 && gamevar.rnd.integerInRange(0, 7) == 0){
+		bullet.body.angularVelocity = gamevar.rnd.integerInRange(-350, 350);
+	}
+
+	maxFrame = (difficultyStage > 4) ? 4 : difficultyStage;
+	bullet.frame = gamevar.rnd.integerInRange(0, maxFrame);
+
+	if(gamevar.rnd.integerInRange(0, 500) == 0){
+		bullet.frame = 6;
+	}
+
+	
+	
 	// bullet.line = new Phaser.Line(bullet.x, bullet.y, bullet.x + bullet.body.velocity.x, bullet.y + bullet.body.velocity.y);
 }
 

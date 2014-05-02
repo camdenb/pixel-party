@@ -175,6 +175,7 @@ function resetDifficulty(){
 
 	maxDirectionRange = 0;
 	difficulty = 0;
+	difficultyStage = 0;
 
 	bulletSpawnInterval = 275;
 	bulletVelocity = 210;
@@ -239,6 +240,7 @@ function setPaused(_bPaused, _bGameOver){
 		bullets.forEach(function(bul){
 			if(!_bGameOver){
 				bul.body.velocity.y = 0;
+				bul.body.velocity.x = 0;
 			}
 		});
 		if(graphicsLevel > 1){
@@ -397,6 +399,9 @@ function playerCollectedCoin(_player, _coin){
 	lastCoinCollectedTime = gamevar.time.now;
 	if(difficulty <= getAchAltTotal(4) && !checkAchStatus(4) && coinsCollectedThisRound > getAchProgress(4)){
 		setAchProgress(4, coinsCollectedThisRound);
+	}
+	if(difficulty <= getAchAltTotal(8) && !checkAchStatus(8) && coinsCollectedThisRound > getAchProgress(8)){
+		setAchProgress(8, coinsCollectedThisRound);
 	}
 	addAchProgress(1, 1);
 }

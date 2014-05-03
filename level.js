@@ -102,7 +102,7 @@ MainState.Level.prototype = {
 		bullets.setProperty('vertical', true);
 		//bullets.setProperty('trail', Phaser.Emitter);
 		bullets.forEach(function(bullet){
-			if(graphicsLevel > 2){
+			if(graphicsLevel > 3){
 				bullet.trail = gamevar.add.emitter(-200, -200, 100);
 				bullet.trail.makeParticles('trail-bullet', 0, 50);
 				// emitter_trail.setAll('scale.x', 2);
@@ -141,7 +141,7 @@ MainState.Level.prototype = {
     	coins.setProperty('timeValue', 10);
    		coins.forEach(function(coin){
 			if(graphicsLevel > 1){
-				coin.trail = gamevar.add.emitter(100, 100, 100);
+				coin.trail = gamevar.add.emitter(100, 100, 0);
 				coin.trail.makeParticles('trail', 0, 50);
 				// emitter_trail.setAll('scale.x', 2);
 				// emitter_trail.setAll('scale.y', 2);
@@ -163,6 +163,11 @@ MainState.Level.prototype = {
 			coin.frame = 2;
 			coin.animations.add('cycle', [2, 3, 4, 5], 15, true);
 		});
+		
+		coins.forEach(function(coin){
+			coin.animations.play('cycle');
+		});
+
 		
 
   //   	timer_coinSpawn = gamevar.time.create(false);
@@ -206,14 +211,13 @@ MainState.Level.prototype = {
 		}
 
 		if(!bPaused){
-			if(graphicsLevel > 2){
+			if(graphicsLevel > 3){
 				bullets.forEach(function(bullet){
 					bullet.trail.x = bullet.x;
 					bullet.trail.y = bullet.y;
 				});
 			}
 			coins.forEach(function(coin){
-				coin.animations.play('cycle');
 				if(graphicsLevel > 1){
 					if(coin.exists){
 						coin.trail.x = coin.x;
@@ -274,6 +278,9 @@ function increaseDifficulty(){
 	if(!bPlayerHitThisRound && difficulty > getAchProgress(6)){
 		setAchProgress(6, difficulty);
 	}
+	if(difficulty > getAchProgress(9)){
+		setAchProgress(9, difficulty);
+	}
 	if(lifeMeter.y <= getAchTotal(7) * gamevar.height){
 		waterLevelAboveThresholdTime++;
 		if(waterLevelAboveThresholdTime > getAchProgress(7)){
@@ -308,14 +315,9 @@ function spawnBullet(){
 	bullet = bullets.getFirstExists(false);
 	var randomPoint;
 
-	if(bOnlyRandomBullets){
-		randomPoint = new Phaser.Point(gamevar.rnd.integerInRange(0, gamevar.width), gamevar.rnd.integerInRange(0, gamevar.height));
-		bullet.random = true;
-		bullet.frame = 0;
-	} else if (bOnlyNormalBullets){
-		bullet.random = false;
-		bullet.frame = 0;
-	} else if(difficultyStage > 5 && gamevar.rnd.integerInRange(0, 3) == 0){
+	var randomNumber = gamevar.rnd.integerInRange(0, 1000);
+
+	if(difficultyStage >= 5 && randomNumber > 750){
 		randomPoint = new Phaser.Point(gamevar.rnd.integerInRange(0, gamevar.width), gamevar.rnd.integerInRange(0, gamevar.height));
 		bullet.random = true;
 		bullet.frame = 0;
@@ -362,7 +364,7 @@ function spawnBullet(){
 	bullet.vertical = bVertical;
 	tempBulletVelocity = bulletVelocity;
 
-	if(difficultyStage > 6 && gamevar.rnd.integerInRange(0, 5) == 0){
+	if(difficultyStage >= 7 && randomNumber > 450 && randomNumber < 650){
 		tempBulletVelocity = bulletVelocity + gamevar.rnd.integerInRange(-50, 250);
 	}
 
@@ -392,19 +394,19 @@ function spawnBullet(){
 		}
 	}
 
-	if(difficultyStage > 5 && gamevar.rnd.integerInRange(0, 5) == 0){
+	if(difficultyStage >= 6 && randomNumber > 550 && randomNumber < 750){
 		size = gamevar.rnd.integerInRange(1.8, 2.2);
 		bullet.scale.setTo(size, size);
 	}
 
-	if(difficultyStage > 7 && gamevar.rnd.integerInRange(0, 7) == 0){
-		bullet.body.angularVelocity = gamevar.rnd.integerInRange(-350, 350);
+	if(difficultyStage >= 5 && randomNumber > 350 && randomNumber < 750){
+		bullet.body.angularVelocity = gamevar.rnd.integerInRange(0, 1350);
 	}
 
-	maxFrame = (difficultyStage > 4) ? 4 : difficultyStage;
+	maxFrame = (difficultyStage >= 4) ? 4 : difficultyStage;
 	bullet.frame = gamevar.rnd.integerInRange(0, maxFrame);
 
-	if(gamevar.rnd.integerInRange(0, 500) == 0){
+	if(randomNumber == 0){
 		bullet.frame = 6;
 	}
 

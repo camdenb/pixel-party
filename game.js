@@ -81,6 +81,8 @@ MainState.Gameplay.prototype = {
 	    player.create();
 	    overlay.create();
 
+	    gameObjects.add(playerSprite, coins, bullets, emitter_trail);
+
 	    gamevar.stage.smoothed = false;
 
 	    bEnteredGameplayBefore = true;
@@ -99,11 +101,12 @@ MainState.Gameplay.prototype = {
 		// gamevar.debug.quadTree(gamevar.physics.arcade.quadTree);
 
 		gamevar.debug.text("Difficulty: " + difficulty, 500, 100);
+		gamevar.debug.text("Difficulty stage: " + difficultyStage, 500, 130);
 		gamevar.debug.text("coins this round: " + coinsCollectedThisRound, 200, 100);
 		
 		// gamevar.debug.text("dead?: " + lifeEmpty, 200, 100);
 		// gamevar.debug.soundInfo(currentSong, 20, 32);
-		// bullets.forEachAlive(function(bullet){gamevar.debug.geom(bullet.line);});
+		// bullets.forEachAlive(function(bullet){gamevar.debug.body(bullet);});
 	 //    gamevar.debug.text("Current Combo: " + currentCombo, 300, 300);
 	 //    gamevar.debug.text("Max Combo: " + maxCombo, 300, 332);
 	 //    gamevar.debug.text("Current Mode: " + modeString, 32, 32);
@@ -118,7 +121,7 @@ MainState.Gameplay.prototype = {
 
 	shutdown: function() {
 		gameObjects.destroy(true, true);
-		//console.log('destroyed game stuff');
+		// console.log('destroyed game stuff');
 	}
 
 };

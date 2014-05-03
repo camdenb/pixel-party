@@ -27,8 +27,6 @@ var text_alert_ach;
 
 var textHeightOffset = 200;
 
-var emitter_text;
-
 var CONST_textDefaultAlpha = 0.3;
 var CONST_textHighlightAlpha = 0.8;
 
@@ -255,35 +253,34 @@ function shakeText(text, amount, time, isRandomish){
 }
 
 
-function textParticleBurst(text){
+function textParticleBurst(text, emitter){
 	if(graphicsLevel > 1){
-		emitter_text = gamevar.add.emitter(-100, 0, 100);
-		emitter_text.makeParticles('trail', 0, 50);
+		emitter.makeParticles('trail', 0, 50);
 		// emitter_trail.setAll('scale.x', 2);
 		// emitter_trail.setAll('scale.y', 2);
-		emitter_text.setAlpha(0.5, 0, 1000);
-		emitter_text.setScale(2, 0.5, 2, 0.5, 1000);
+		emitter.setAlpha(0.5, 0, 1000);
+		emitter.setScale(2, 0.5, 2, 0.5, 1000);
 		//emitter_trail.setAll('alpha', .6);
-		emitter_text.gravity = 100;
-		emitter_text.width = 15;
-		emitter_text.height = 15;
-		emitter_text.particleDrag.setTo(20, 20);
-		emitter_text.angularDrag = 200;
+		emitter.gravity = 100;
+		emitter.width = 15;
+		emitter.height = 15;
+		emitter.particleDrag.setTo(20, 20);
+		emitter.angularDrag = 200;
 		// emitter_trail.minParticleScale = 1;
 		// emitter_trail.maxParticleScale = 2;
-		emitter_text.minParticleSpeed.setTo(-80, -80);
-		emitter_text.maxParticleSpeed.setTo(80, 80);
-		//console.log(emitter_text);
-		emitter_text.width = getTextWidth(text);
-		emitter_text.height = 40;
-		emitter_text.x = text.x + emitter_text.width / 2;
-		emitter_text.y = text.y + emitter_text.height / 2;
-		emitter_text.start(true, 1000, 0, 40);
+		emitter.minParticleSpeed.setTo(-80, -80);
+		emitter.maxParticleSpeed.setTo(80, 80);
+		//console.log(emitter);
+		emitter.width = getTextWidth(text);
+		emitter.height = 40;
+		emitter.x = text.x + emitter.width / 2;
+		emitter.y = text.y + emitter.height / 2;
+		emitter.start(true, 1000, 0, 40);
 	}
 }
 
 function graphicsAdvance(){
-	if(graphicsLevel < 2){
+	if(graphicsLevel < 3){
 		graphicsLevel++;
 	} else {
 		graphicsLevel = 1;

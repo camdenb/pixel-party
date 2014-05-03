@@ -55,27 +55,13 @@ MainState.Player.prototype = {
 			store.set('hiscore', 0);
 		}
 
+		emitter_text_menus = gamevar.add.emitter(-100, 0, 0);
+
 		bGameOver = false;
-		bombSprite = gamevar.add.sprite(-200, 0, 'explosion');
-		//bombSprite.animations.add('explode', [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17], 10);
-		bombSprite.anchor.setTo(0.5, 0.5);
-		//bombSprite.scale.setTo(2, 2);
 
-		//emitter
-		emitter_blood = gamevar.add.emitter(0, 0, 100);
-		emitter_blood.makeParticles('blood', 0, 300);
-		emitter_blood.setScale(1, 2, 1, 2, 3000, Phaser.Easing.Exponential.Out);
-		emitter_blood.gravity = 0;
-		emitter_blood.particleDrag.setTo(20, 20);
-		emitter_blood.angularDrag = 200;
-		emitter_blood.minParticleSpeed.setTo(-40, -40);
-		emitter_blood.maxParticleSpeed.setTo(40, 40);
-		//emitter_blood.setRotation(0, 180);
-		//emitter_blood.setYSpeed(-1000, -500);
 
+		emitter_trail = gamevar.add.emitter(-100, 0, 0);
 		if(graphicsLevel > 1){
-			//emitter
-			emitter_trail = gamevar.add.emitter(-100, 0, 100);
 			emitter_trail.makeParticles('trail', reward_trailFrame, 200);
 			// emitter_trail.setAll('scale.x', 2);
 			// emitter_trail.setAll('scale.y', 2);
@@ -87,19 +73,23 @@ MainState.Player.prototype = {
 			emitter_trail.height = 13;
 			emitter_trail.particleDrag.setTo(20, 20);
 			emitter_trail.angularDrag = 200;
+			emitter_trail.particleSendToBack = true;
 			// emitter_trail.minParticleScale = 1;
 			// emitter_trail.maxParticleScale = 2;
 			emitter_trail.minParticleSpeed.setTo(-40, -40);
 			emitter_trail.maxParticleSpeed.setTo(40, 40);
 			//emitter_trail.setRotation(0, 180);
 			//emitter_trail.setYSpeed(-1000, -500);
+			emitter_trail.start(false, 700, 0, 0);
 		}
-
 
 		playerSprite = gamevar.add.sprite(100, 100, 'player', reward_playerFrame);
 		playerSprite.smoothed = false;
 		playerSprite.scale.setTo(1.6, 1.6);
 		playerSprite.anchor.setTo(0.5, 0.5);
+		gamevar.world.sendToBack(playerSprite);
+		console.log(playerSprite);
+
 
 		gamevar.physics.enable([playerSprite], Phaser.Physics.ARCADE, true);
 
@@ -129,6 +119,7 @@ MainState.Player.prototype = {
 		hasBomb = true;
 
 
+
 	},
 
 	update: function() {
@@ -143,7 +134,11 @@ MainState.Player.prototype = {
 				if(Math.abs(playerSprite.deltaX) == 0 && Math.abs(playerSprite.deltaY) == 0){
 					emitter_trail.on = false;
 				} else if(!emitter_trail.on){
-					emitter_trail.start(false, 700, 0, 0);
+					if(graphicsLevel > 2){
+						emitter_trail.start(false, 700, 0, 0);
+					} else {
+						emitter_trail.start(false, 700, 50, 0);
+					}
 				}
 			}
 
@@ -203,7 +198,7 @@ function setPaused(_bPaused, _bGameOver){
 		}
 		if(difficulty <= getAchTotal(5)){
 			setAchProgress(5, 1);
-			console.log(achLookup[5]);
+			//console.log(achLookup[5]);
 		}
 		text_paused.setText('game over');
 		firstButton = 'restart';

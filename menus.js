@@ -59,6 +59,7 @@ var reward_playerPos;
 
 var reward_playerSprite;
 
+var emitter_text_menus;
 
 MainState.Menus.Main.prototype = {
 	//PIXEL PARTY
@@ -76,6 +77,8 @@ MainState.Menus.Main.prototype = {
 		gamevar.antialias = false;
 		//Phaser.Canvas.setSmoothingEnabled(gamevar.context, false);
 		
+		emitter_text_menus = gamevar.add.emitter(-100, 0, 0);
+
 		if(menuLifeMeter != null && menuLifeMeter.exists){
 				menuLifeMeter.destroy();
 		}
@@ -141,7 +144,7 @@ MainState.Menus.Main.prototype = {
 		sound_switch = this.add.audio('switch');
 		sound_click = this.add.audio('click');
 		//this.add.button(this.world.centerX - 64, 300, 'button_play', buttonPressed_play, this);
-		addMenus(['btn_play', 'play', 30, 'btn_howto', 'how to play', 30, 'btn_options', 'options', 30, 'btn_credits', 'credits', 30 ,'btn_achievements', 'achievements', 30], 275);
+		addMenus(['btn_play', 'play', 30, 'btn_howto', 'how to play', 30, 'btn_options', 'options', 30, 'btn_credits', 'credits', 30 ,'btn_achievements', 'achievements', 30], 275, true);
 		nextScreen = 'gameplay';
 
 		advanceScreenKey = gamevar.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -389,7 +392,6 @@ function Achievement(text, id, total, rewardKey, rewardFrame, altTotal){
 	this.linkedSprite;
 	this.linkedCheckmark;
 	this.selected = false;
-	this.timeCompleted = 0;
 
 }
 
@@ -398,12 +400,13 @@ function initAchievements(){
 	achArr = [
 				// new Achievement('always complete', 7, 1, 'player', 3),
 				new Achievement('collect 5,000 bits', 1, 5000, 'player', 3),
-				new Achievement('collect 15 bits in first 5 sec', 8, 5, 'player', 1, 15),
-				new Achievement('collect 70 bits in first 30 sec', 4, 30, 'player', 7, 70),
+				new Achievement('collect 25 bits in first 5 sec', 8, 5, 'player', 1, 25),
+				new Achievement('collect 100 bits in first 30 sec', 4, 30, 'player', 7, 100),
 				20,
 				// new Achievement('always complete trail', 8, 1, 'trail', [1, 2, 3, 4, 5, 6, 7 ,8]),
 				new Achievement('survive 120 seconds w/ no bomb', 2, 120, 'trail', 3),
 				new Achievement('survive 200 seconds unscathed', 6, 200, 'trail', [1, 2, 3, 4, 5, 6, 7 ,8]),
+				new Achievement('survive 300 seconds', 9, 300, 'trail', 7),
 				new Achievement('survive 60 secs w/ water above 50%', 7, .5, 'trail', 5, 60),
 				20,
 				new Achievement('hit by 666 bullets', 3, 666, 'player', 5),
@@ -411,7 +414,7 @@ function initAchievements(){
 				
 				];
 
-	maxID = 8; ////REMEMBER TO UPDATE
+	maxID = 9; ////REMEMBER TO UPDATE
 
 	for(var i = 0; i < achArr.length; i++){
 
@@ -430,8 +433,9 @@ function initAchievements(){
 
 	updateAchValuesFromStorage(cachedAchList);
 
-	setAllAchievementsUnlocked(true);
+	// setAllAchievementsUnlocked(true);
 	// setAllAchProgress(0);
+	//clearAchCache();
 	// setAchProgress(7, 1);
 	// setAchProgress(8, 1);
 
@@ -448,6 +452,12 @@ function updateAchValuesFromStorage(cachedList){
 		//console.log(i + " " + id + " " + prog);
 		correspondingAch = achLookup[id];
 		correspondingAch.progress = prog;
+	}
+}
+
+function clearAchCache(){
+	for(var i = 0; i <= maxID * 2 + 1; i += 2){
+		store.set('achListProgress_' + (i + 1), 0);
 	}
 }
 
@@ -704,10 +714,6 @@ function checkAchStatus(id){
 	return achLookup[id].completed;
 }
 
-function getAchTimeCompleted(id){
-	return achLookup[id].timeUnlocked;
-}
-
 function checkIfAchRecentlyCompleted(id, timeAgo){
 	return (gamevar.time.now - getAchTimeCompleted(id) > timeAgo);
 }
@@ -715,7 +721,6 @@ function checkIfAchRecentlyCompleted(id, timeAgo){
 function setAchCompleted(id, complete){
 	if(bEnteredGameplayBefore && !achLookup[id].completed){
 		alertAchComplete(id);
-		achLookup[id].timeCompleted = gamevar.time.now;
 	}
 	achLookup[id].completed = complete;
 }
@@ -767,8 +772,9 @@ function titleShake(){
 
 
 //buttonArr is array of keys for menus
-function addMenus(buttonArr, heightOffset) {
+function addMenus(buttonArr, heightOffset, bParticles) {
 
+	bParticles = bParticles || false;
 	var currentHeight = heightOffset;
 	var buttons = [];
 	var buttonObjects = [];
@@ -793,7 +799,7 @@ function addMenus(buttonArr, heightOffset) {
 		img.linkedText.alpha = .5;
 		img.events.onInputDown.add(buttonPressed, this);
 		img.events.onInputOver.add(function(_img){
-			buttonInputOver(_img);
+			buttonInputOver(_img, bParticles);
 		});
 		img.events.onInputOut.add(function(_img){
 			_img.linkedText.alpha = 0.5;
@@ -811,14 +817,16 @@ function addMenus(buttonArr, heightOffset) {
 
 }
 
-function buttonInputOver(_img){
+function buttonInputOver(_img, bParticles){
+	bParticles = bParticles || false;
 	sound_switch.play();
 	setBGRandomColor(150);
 	centerText(_img.linkedText);
 	_img.linkedText.y = _img.currentHeight;
 	shakeText(_img.linkedText, 3, 100, true);
 	_img.linkedText.alpha = 1;
-	textParticleBurst(_img.linkedText);
+	if(bParticles)
+		textParticleBurst(_img.linkedText, emitter_text_menus);
 }
 
 function buttonPressed(btn){

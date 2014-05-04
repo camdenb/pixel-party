@@ -81,7 +81,7 @@ MainState.Gameplay.prototype = {
 	    player.create();
 	    overlay.create();
 
-	    gameObjects.add(playerSprite, coins, bullets, emitter_trail);
+	    gameObjects.add(coins, bullets, emitter_trail, playerSprite);
 
 	    gamevar.stage.smoothed = false;
 

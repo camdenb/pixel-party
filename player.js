@@ -87,7 +87,7 @@ MainState.Player.prototype = {
 		playerSprite.smoothed = false;
 		playerSprite.scale.setTo(1.6, 1.6);
 		playerSprite.anchor.setTo(0.5, 0.5);
-		gamevar.world.sendToBack(playerSprite);
+		// gamevar.world.sendToBack(playerSprite);
 		console.log(playerSprite);
 
 

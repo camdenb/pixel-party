@@ -303,7 +303,7 @@ function updateDifficulty(){
 		difficultyStage++;
 	}
 	//console.log(difficultyAdditions[currentLevel][currentEvent]);
-	var difficultyToSubtract = (difficulty / 2 > CONST_bulletSpawnInterval + 10) ? 10 : CONST_bulletSpawnInterval - (difficulty / 2);
+	var difficultyToSubtract = (difficulty / 1.5 > CONST_bulletSpawnInterval + 10) ? 10 : CONST_bulletSpawnInterval - (difficulty / 1.5);
 	bulletSpawnInterval = difficultyToSubtract;
 	bulletVelocity = CONST_bulletVelocity + (difficulty / 4);
 	bulletVelocity_random = CONST_bulletVelocity_random + (difficulty / 4);
@@ -400,7 +400,7 @@ function spawnBullet(){
 	}
 
 	if(difficultyStage >= 5 && randomNumber > 350 && randomNumber < 750){
-		bullet.body.angularVelocity = gamevar.rnd.integerInRange(0, 1350);
+		bullet.body.angularVelocity = gamevar.rnd.integerInRange(300, 1350);
 	}
 
 	maxFrame = (difficultyStage >= 4) ? 4 : difficultyStage;

@@ -81,7 +81,7 @@ MainState.Gameplay.prototype = {
 	    player.create();
 	    overlay.create();
 
-	    gameObjects.add(coins, bullets, emitter_trail, playerSprite);
+	    gameObjects.add(text_bombs, text_score, coins, bullets, emitter_trail, playerSprite);
 
 	    gamevar.stage.smoothed = false;
 
@@ -100,9 +100,9 @@ MainState.Gameplay.prototype = {
 
 		// gamevar.debug.quadTree(gamevar.physics.arcade.quadTree);
 
-		gamevar.debug.text("Difficulty: " + difficulty, 500, 100);
-		gamevar.debug.text("Difficulty stage: " + difficultyStage, 500, 130);
-		gamevar.debug.text("coins this round: " + coinsCollectedThisRound, 200, 100);
+		//gamevar.debug.text("Difficulty: " + difficulty, 500, 100);
+		//gamevar.debug.text("Difficulty stage: " + difficultyStage, 500, 130);
+		//gamevar.debug.text("coins this round: " + coinsCollectedThisRound, 200, 100);
 		
 		// gamevar.debug.text("dead?: " + lifeEmpty, 200, 100);
 		// gamevar.debug.soundInfo(currentSong, 20, 32);
@@ -116,7 +116,7 @@ MainState.Gameplay.prototype = {
 	    //game.debug.text("health:" + playerHealth, playerSprite.x, playerSprite.y - 10);
 
 	    gamevar.time.advancedTiming = true;
-	    gamevar.debug.text("fps: " + gamevar.time.fps, 600, 32);
+	    //gamevar.debug.text("fps: " + gamevar.time.fps, 600, 32);
 	},
 
 	shutdown: function() {

@@ -155,6 +155,7 @@ MainState.Menus.Main.prototype = {
 			achInitialized = initAchievements();
 		}
 
+		console.log(achList);
 
 
 	},
@@ -367,6 +368,7 @@ MainState.Menus.Achievements.prototype = {
 		// optionsMenuArr = addMenus(['btn_volumeLevel_master', 'master volume:' + volumeLevel, 30, 'btn_volumeLevel_music', 'music volume:' + volumeLevel_music, 30, 'btn_graphicsLevel', 'graphics level:' + graphicsLevel, 30], 200);
 		
 		//centerText(this.add.bitmapText(100, 300, 'carrier', 'collect 300 coins      175/300', 15)).alpha = 0.5; 
+		gamevar.antialias = false;
 		addAchievementItems(60, 11, 24);
 
 		addBackButton();
@@ -400,8 +402,8 @@ function initAchievements(){
 	achArr = [
 				// new Achievement('always complete', 7, 1, 'player', 3),
 				new Achievement('collect 5,000 bits', 1, 5000, 'player', 3),
-				new Achievement('collect 25 bits in first 5 sec', 8, 5, 'player', 1, 25),
-				new Achievement('collect 100 bits in first 30 sec', 4, 30, 'player', 7, 100),
+				new Achievement('collect 13 bits in first 5 sec', 8, 5, 'player', 1, 13),
+				new Achievement('collect 80 bits in first 30 sec', 4, 30, 'player', 7, 80),
 				20,
 				// new Achievement('always complete trail', 8, 1, 'trail', [1, 2, 3, 4, 5, 6, 7 ,8]),
 				new Achievement('survive 120 seconds w/ no bomb', 2, 120, 'trail', 3),
@@ -436,7 +438,7 @@ function initAchievements(){
 	// setAllAchievementsUnlocked(true);
 	// setAllAchProgress(0);
 	//clearAchCache();
-	// setAchProgress(7, 1);
+	// setAchProgress(8, 0);
 	// setAchProgress(8, 1);
 
 	refreshAch();
@@ -719,7 +721,8 @@ function checkIfAchRecentlyCompleted(id, timeAgo){
 }
 
 function setAchCompleted(id, complete){
-	if(bEnteredGameplayBefore && !achLookup[id].completed){
+	console.log(achLookup[id].completed);
+	if(gamevar.state.current === 'gameplay' && !achLookup[id].completed){
 		alertAchComplete(id);
 	}
 	achLookup[id].completed = complete;

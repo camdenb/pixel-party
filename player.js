@@ -88,7 +88,6 @@ MainState.Player.prototype = {
 		playerSprite.scale.setTo(1.6, 1.6);
 		playerSprite.anchor.setTo(0.5, 0.5);
 		// gamevar.world.sendToBack(playerSprite);
-		console.log(playerSprite);
 
 
 		gamevar.physics.enable([playerSprite], Phaser.Physics.ARCADE, true);
@@ -392,10 +391,10 @@ function playerCollectedCoin(_player, _coin){
 	// console.log(achList);
 	coinsCollectedThisRound++;
 	lastCoinCollectedTime = gamevar.time.now;
-	if(difficulty <= getAchAltTotal(4) && !checkAchStatus(4) && coinsCollectedThisRound > getAchProgress(4)){
+	if(difficulty <= getAchTotal(4) && !checkAchStatus(4) && coinsCollectedThisRound > getAchProgress(4)){
 		setAchProgress(4, coinsCollectedThisRound);
 	}
-	if(difficulty <= getAchAltTotal(8) && !checkAchStatus(8) && coinsCollectedThisRound > getAchProgress(8)){
+	if(difficulty <= getAchTotal(8) && !checkAchStatus(8) && coinsCollectedThisRound > getAchProgress(8)){
 		setAchProgress(8, coinsCollectedThisRound);
 	}
 	addAchProgress(1, 1);

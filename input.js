@@ -175,7 +175,7 @@ function bindKeys(){
 			setPaused(true, false);
 		}
 	});
-	if(!bPaused){
+	if(!bPaused && gamevar.state.current === 'gameplay'){
 		gamevar.input.onDown.add(launchBomb);
 	} else {
 
